@@ -1,5 +1,6 @@
 package com.dayspark.app.controller;
 
+import com.dayspark.app.domain.StreakCalculator;
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.model.FocusSession;
@@ -95,14 +96,11 @@ public class FeatureController {
     }
 
     private int goalStreak(Dare dare, LocalDate today, Set<LocalDate> completed) {
-        int streak = 0;
-        LocalDate day = completed.contains(today) ? today : today.minusDays(1);
-        for (int checked = 0; checked < 366 && !day.isBefore(dare.getStartDate()); checked++, day = day.minusDays(1)) {
-            if (!completed.contains(day) && !planning.isScheduled(dare, day)) continue;
-            if (!completed.contains(day)) break;
-            streak++;
-        }
-        return streak;
+        return StreakCalculator.count(
+                today,
+                dare.getStartDate(),
+                day -> completed.contains(day) || planning.isScheduled(dare, day),
+                completed::contains);
     }
 
     @PostMapping("/challenges/{id}/goals")
