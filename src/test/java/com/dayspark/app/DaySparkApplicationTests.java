@@ -125,6 +125,6 @@ class DaySparkApplicationTests {
                         "monthCompletionCount", "monthPlannedCount", "monthRate",
                         "monthFocusMinutes", "monthFocusRounds", "focusMap", "days"))
                 .andExpect(content().string(containsString("calendar-v54-grid")))
-                .andExpect(content().string(containsString("달력 UI v5.4")));
+                .andExpect(content().string(containsString("MONTHLY OVERVIEW")));
     }
 }
