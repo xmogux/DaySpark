@@ -1,64 +1,37 @@
-# DaySpark v5.5 — Java 웹앱
+# DaySpark
 
-반복 목표, 완료 기록, 시각적 포모도로, 달력, Streak, 통계와 공부 복습 플랜 기능이 있는 Spring Boot 웹앱입니다.
+반복 목표(도전), 완료 기록, 포모도로 집중 타이머, 달력·통계, 공부 복습 플랜을 제공하는
+단일 사용자용 Spring Boot 웹앱입니다. 소프트웨어공학 수업 팀 프로젝트입니다.
 
-## 시작 — Windows + Chrome
+## 개발 환경
 
-1. ZIP을 **모두 압축 풀기**로 해제합니다. ZIP 안에서 실행하지 마세요.
-2. `00_START_DAYSPARK_CHROME.bat` 더블클릭. 서버를 백그라운드에서 시작하고 준비되면 Chrome을 자동으로 엽니다.
-3. 웹앱을 종료할 때 `03_STOP_DAYSPARK.bat` 더블클릭. Chrome만 닫으면 서버는 계속 실행됩니다.
-4. 오류가 나면 `02_OPEN_ERROR_LOG.bat`을 실행해 로그의 마지막 부분을 확인합니다.
+| 항목 | 기준 |
+|---|---|
+| Java | **17** (`pom.xml`의 `java.version`; JDK 17 이상에서 실행 가능) |
+| 빌드 | Maven Wrapper (`mvnw`, `mvnw.cmd`) — Maven을 따로 설치하지 않아도 됨 |
+| 프레임워크 | Spring Boot 3.5 (Web, Thymeleaf, Data JPA, Validation) |
+| DB | H2 파일 DB (`./dayspark_v2.mv.db`) |
+| 테스트 | JUnit 5, Spring Boot Test(MockMvc) |
 
-**이전 DaySpark 서버가 실행 중이라면 먼저 종료하세요.** 8080 포트에 다른 버전이 남아 있으면 새로운 앱 실행을 중지합니다. 기존 버전 폴더의 `03_STOP_DAYSPARK.bat`으로 해당 서버를 종료한 뒤 진행하세요.
+## Maven Wrapper
 
-**기존 설치 파일 재사용:** 실행기는 PATH의 Maven → 현재 폴더 `.tools/apache-maven-3.9.9` → `%LOCALAPPDATA%/DaySpark/tools` 순으로 찾아 재사용합니다. 이전 폴더에만 Maven이 있다면 해당 `.tools` 폴더를 새로운 폴더로 복사해도 됩니다. Gradle 및 별도 유료 서비스는 필요하지 않습니다.
+`mvnw`/`mvnw.cmd`가 저장소에 없다면 **한 번만** 생성해서 커밋합니다 (Maven이 설치된 환경 필요).
 
-**완전히 새로운 PC에서 첫 실행** 시에는 Maven과 프로젝트 의존성 다운로드가 필요할 수 있습니다. 라이브러리는 기본 Maven 캐시(`%USERPROFILE%/.m2/repository`)에 재사용됩니다. 파란색 다운로드 진행 화면과 별도 서버 창은 표시하지 않지만, 처음 다운로드 자체를 제거한 것은 아닙니다. 다운로드가 필요하지 않은 UI 체험은 `01_TRY_NOW_CHROME_NO_SERVER.bat`으로 가능합니다. 이 경우 서버 DB를 쓰지 않고 브라우저 저장소를 사용합니다.
+```bash
+# WSL / Linux
+sudo apt install -y maven            # 이미 있으면 생략
+mvn -N wrapper:wrapper -Dmaven=3.9.11 -Dtype=only-script
+chmod +x mvnw
+git add mvnw mvnw.cmd .mvn && git commit -m "build: add Maven Wrapper"
+```
 
+이후에는 Maven 설치 여부와 상관없이 아래 명령만 사용합니다.
 
-## v5.5에서 추가된 공부 복습 플랜
+## 테스트
 
-- `STUDY` 카테고리에서 선택적으로 **복습 플랜**을 켤 수 있습니다.
-- 복습 기준일과 간격을 `1, 3, 7, 14`처럼 사용자가 직접 정합니다.
-- 입력 중 실제 복습 예정일을 바로 미리 볼 수 있습니다.
-- 오늘 화면, 도전 상세 타임라인, 월간 달력, 날짜 상세에서 같은 복습 일정을 확인할 수 있습니다.
-- 복습 완료 기록은 일반 도전 완료율과 분리되어 기존 통계를 왜곡하지 않습니다.
+```bash
+./mvnw test      # 단위 + 통합 테스트
+./mvnw verify    # 전체 빌드 + 테스트
+```
 
-자세한 변경 내용은 `docs/11_v5_5_복습플랜_변경사항.md`를 참고하세요.
-
-## v5.4에서 달라진 달력
-
-- 월간 완료 수, 오늘까지의 달성률, 누적 집중 시간·회차를 상단에서 확인할 수 있습니다.
-- 완료한 날만 연녹색으로, 일부 완료는 주황색으로 구분합니다. **완료 0개인 날은 형광색 막대를 표시하지 않습니다.**
-- 미래 날짜는 실패로 표시하지 않고 `예정` 상태와 점선 트랙으로 구분합니다.
-- PC·모바일 반응형 달력과 날짜 클릭 상세 기록 화면을 새 디자인으로 바꿨습니다.
-- 달력 화면 하단 `달력 UI v5.4`를 통해 이전 서버 화면이 아닌지 확인할 수 있습니다.
-- 서버 없이 화면만 바로 보고 싶다면 `04_PREVIEW_CALENDAR_CHROME.html`을 Chrome에서 열어보세요. **예시 데이터 화면**이며 DB와 연결되지 않습니다.
-
-**이전 버전의 실제 기록을 계속 쓰려면:** 옛 서버를 먼저 종료하고, 기존 폴더에 있는 `dayspark_v2.mv.db`와 `uploads` 폴더(있을 경우)를 새 프로젝트 폴더로 복사하세요. `*.mv.db`는 서버 실행 중에 복사하지 마세요.
-
-## 핵심 기능
-
-- 도전 CRUD / 반복 일정 / 휴식일
-- 공부 도전 사용자 지정 복습 플랜 / 복습 완료 추적
-- 수치 목표 / 주간 목표 / 오늘 대시보드
-- 완료 및 사진·메모
-- 시각적 집중 타이머 / 누적 집중 시간
-- 달력 / Streak / 통계
-
-## 소프트웨어공학 발표 자료
-
-- 기존 Word 양식: `reports/01_DaySpark_요구사항_중간보고서_양식.docx`, `reports/02_DaySpark_설계_최종보고서_양식.docx`
-- 새 발표 양식: `reports/presentation_templates/DaySpark_SE_Presentation_Template_Calvin_Rutgers.pptx`
-- 양식 근거: `reports/07_새_발표양식_참고근거.md`
-- v5.1 수정 및 검증 기록: `reports/09_v5_1_컴파일_및_조용한실행_수정.md`
-
-## 개발자 확인
-
-기존에 설치된 Maven으로 `mvn test` 또는 `mvn spring-boot:run`을 실행할 수 있습니다. 배포 환경에는 Maven Central 접속이 없어 **전체 Maven 빌드와 Windows 환경 실행 테스트를 실제로 수행하지 못했습니다.** 기존 v5.1에서 변경한 CompletionService는 Java 17 스텁을 이용한 javac 컴파일 및 독립 회귀 테스트를 통과했습니다. 전체 테스트 통과로 소개하거나 문서에 기록하지 마세요.
-
-
-**v5.4 검증 범위:** 크롬의 정적 디자인 미리보기를 PC·태블릿·모바일 너비에서 렌더링했습니다. `redesignedCalendarExposesMonthSummaryAndDayCards` 통합 테스트 코드를 추가했지만, 여기서는 Maven Central에 연결되지 않아 실제 Maven 실행 결과를 얻지 못했습니다.
-
-
-**v5.5 검증 범위:** JavaScript는 `node --check`로 문법 검사를 통과했습니다. Java 소스 전체는 외부 Spring/JPA 의존성이 없는 상태에서 `javac` 파싱 검사를 수행해 새 코드의 Java 문법 오류가 없음을 확인했습니다. 이 실행 환경에는 Maven 및 Maven Central 네트워크 접근이 없어 Spring Boot 통합 테스트 자체는 실행하지 못했습니다. 복습 플랜 생성/정규화/완료 토글에 대한 MockMvc 테스트 코드는 `EnhancementApiTests`에 추가했습니다.
+Windows CMD/PowerShell에서는 `mvnw.cmd test`, `mvnw.cmd verify`.

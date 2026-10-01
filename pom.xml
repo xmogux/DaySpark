@@ -11,11 +11,16 @@
 
     <groupId>com.dayspark</groupId>
     <artifactId>dayspark</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>5.6.0</version>
     <name>DaySpark</name>
     <description>Daily micro challenge tracker</description>
 
     <properties>
+        <!--
+            Java baseline for the whole project. Keep README.md and
+            .github/workflows/ci.yml in sync with this value.
+            The code is compiled with release 17 and also runs on newer JDKs (21, 25).
+        -->
         <java.version>17</java.version>
     </properties>
 
