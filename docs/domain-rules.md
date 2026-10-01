@@ -74,3 +74,19 @@
 - 도전을 쉬는 동안의 복습은 오늘 화면·달력에 표시하지 않습니다.
 - 테스트: `DomainRuleTests.reviewPlanCreatesOneScheduleForTheStudyUnit`,
   `RegressionTests.overdueReviewsStayOnTheHomeScreenUntilDone`, `EnhancementApiTests.studyReviewPlanCanBeConfiguredAndCompleted`
+
+## 7. 포모도로 연결 (집중 → 진행량 → 완료)
+
+1. 집중 세션이 끝나면 그 시간은 **항상 집중 기록**(달력·통계의 집중 시간)으로 남습니다.
+2. 도전의 목표 단위가 `분`이고 **세션이 끝난 날짜에 그 도전이 계획되어 있을 때만** 진행량에 더합니다.
+   예정 없는 날의 집중은 정상 종료되고, 진행량·완료에는 반영하지 않습니다.
+3. 세션의 날짜는 계획 시간이 끝난 시각의 날짜입니다. 23:50에 25분 시작 → 다음 날 00:15 → **다음 날** 기록.
+4. 진행량(직접 입력 또는 집중)이 **목표량에 처음 도달하는 순간** 자동으로 완료합니다
+   (메모: "목표량 달성으로 자동 완료"). 이미 완료했거나 계획이 없는 날이면 아무것도 하지 않습니다.
+5. 자동 완료를 취소한 뒤 진행량을 더 쌓아도 다시 자동 완료하지 않습니다(이미 도달한 목표). 수동 완료는 가능합니다.
+6. 자동 완료는 예외를 던지지 않으므로 **세션 종료(finish)가 자동 완료 때문에 실패하지 않습니다.**
+   finish는 같은 세션에 여러 번 호출해도 결과가 같습니다(멱등).
+7. 브라우저는 finish가 실패하면 서버의 현재 세션 상태로 다시 맞추고, 5초 뒤에만 재시도합니다.
+   (이전에는 실패 시 6초 동안 finish를 1,000번 넘게 호출했습니다.)
+
+- 테스트: `FocusAutoCompleteTests`(5개), `FocusSessionUnitTests.completedDayUsesActualExpectedFinishTimeAcrossMidnight`

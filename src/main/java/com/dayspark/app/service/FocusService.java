@@ -69,10 +69,9 @@ public class FocusService {
     }
 
     private FocusSession finishInternal(FocusSession session, Instant now) {
-        LocalDate completedDay = session.expectedCompletedDay(clock.getZone());
-        session.complete(now, completedDay);
+        session.complete(now, clock.getZone());
         repo.save(session);
-        progress.focusEarned(session.getDare(), completedDay, session.getPlannedMinutes());
+        progress.focusEarned(session.getDare(), session.getCompletedDay(), session.getPlannedMinutes());
         return session;
     }
 

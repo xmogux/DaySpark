@@ -21,6 +21,8 @@ import java.util.Set;
 
 @Service
 public class CompletionService {
+    public static final String AUTO_COMPLETE_NOTE = "목표량 달성으로 자동 완료";
+
     private final CompletionRepository completionRepository;
     private final DareRepository dareRepository;
     private final PlanningService planning;
@@ -59,6 +61,17 @@ public class CompletionService {
         String cleanNote = note == null ? "" : note.trim();
         if (cleanNote.length() > 300) cleanNote = cleanNote.substring(0, 300);
         return completionRepository.save(new Completion(dare, date, cleanNote, imagePath, LocalDateTime.now(clock)));
+    }
+
+    /**
+     * Completes {@code dare} on {@code date} because its numeric target was reached. Does nothing
+     * (and never throws) when the day is not planned or a completion already exists.
+     */
+    @Transactional
+    public Optional<Completion> autoComplete(Dare dare, LocalDate date) {
+        if (!planning.isScheduled(dare, date) || find(dare.getId(), date).isPresent()) return Optional.empty();
+        return Optional.of(completionRepository.save(
+                new Completion(dare, date, AUTO_COMPLETE_NOTE, null, LocalDateTime.now(clock))));
     }
 
     /**

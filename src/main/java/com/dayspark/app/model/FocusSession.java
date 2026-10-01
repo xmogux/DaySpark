@@ -84,12 +84,17 @@ public class FocusSession {
         status = FocusStatus.RUNNING.name();
     }
 
-    public void complete(Instant now, LocalDate day) {
+    /**
+     * Finishes the session. The completed day is the local date on which the planned time ran out
+     * (not the moment the browser called finish), computed after any pause is closed so a session
+     * started at 23:50 for 25 minutes belongs to the next day.
+     */
+    public void complete(Instant now, ZoneId zone) {
         if (FocusStatus.PAUSED.name().equals(status)) resume(now);
         if (!FocusStatus.RUNNING.name().equals(status)) throw new IllegalStateException("이미 끝난 타이머입니다.");
         if (remainingMillis(now) > 0) throw new IllegalStateException("집중 시간이 아직 끝나지 않았습니다.");
         endedAt = now;
-        completedDay = day;
+        completedDay = expectedCompletedDay(zone);
         status = FocusStatus.COMPLETED.name();
     }
 

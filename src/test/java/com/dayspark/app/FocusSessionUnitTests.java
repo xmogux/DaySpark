@@ -14,9 +14,10 @@ class FocusSessionUnitTests {
   assertThat(s.remainingMillis(t.plusSeconds(60))).isEqualTo(40000);
   s.resume(t.plusSeconds(50));
   assertThat(s.remainingMillis(t.plusSeconds(80))).isEqualTo(10000);
-  assertThatThrownBy(()->s.complete(t.plusSeconds(80),LocalDate.of(2026,9,1)))
+  assertThatThrownBy(()->s.complete(t.plusSeconds(80),ZoneOffset.UTC))
    .isInstanceOf(IllegalStateException.class);
-  s.complete(t.plusSeconds(90),LocalDate.of(2026,9,1));
+  s.complete(t.plusSeconds(90),ZoneOffset.UTC);
+  assertThat(s.getCompletedDay()).isEqualTo(LocalDate.of(2026,9,1));
   assertThat(s.getStatus()).isEqualTo("COMPLETED");
  }
  @Test void cancellationNeverBecomesCompletion(){
@@ -25,7 +26,7 @@ class FocusSessionUnitTests {
   FocusSession s=new FocusSession(d,1,start);
   s.cancel(start.plusSeconds(12));
   assertThat(s.getStatus()).isEqualTo("CANCELLED");
-  assertThatThrownBy(()->s.complete(start.plusSeconds(120),LocalDate.of(2026,9,1)))
+  assertThatThrownBy(()->s.complete(start.plusSeconds(120),ZoneOffset.UTC))
    .isInstanceOf(IllegalStateException.class);
  }
  @Test void completedDayUsesActualExpectedFinishTimeAcrossMidnight(){
