@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DaySpark — 오늘</title><link rel="stylesheet" th:href="@{/css/app.css(v=55)}"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DaySpark — 오늘</title><link rel="stylesheet" th:href="@{/css/app.css(v=56)}"></head>
 <body><div class="page-shell">
-<header class="topbar"><a class="brand" href="/"><span class="brand-mark">✦</span><span>DaySpark</span></a><nav><a class="nav-link active" href="/">오늘</a><a class="nav-link" href="/challenges">도전</a><a class="nav-link" href="/calendar">달력</a><a class="nav-link" href="/stats">통계</a><a class="nav-link" href="/focus">집중 타이머</a><a class="nav-link" href="/history">기록</a></nav></header>
+<header th:replace="~{fragments/layout :: topbar('home')}"></header>
 <main>
 <section class="hero-grid"><div class="hero-copy"><span class="eyebrow">TODAY'S ROUTINE</span><h1>작은 목표를<br><span>오늘 끝내세요.</span></h1><p>반복되는 목표를 오늘 해야 할 일로 정리하고, 완료 순간을 사진과 메모로 남깁니다.</p></div>
 <div class="progress-card"><div class="progress-top"><div><span class="stat-label">TODAY</span><strong><span th:text="${done}">0</span><small> / <span th:text="${total}">0</span></small></strong></div><div class="ring" th:style="'--p:'+${progress}"><span th:text="${progress}+'%'">0%</span></div></div><div class="progress-track"><span th:style="'width:'+${progress}+'%'"></span></div><p><b th:text="${streak}">0</b>일 연속 기록 중</p></div></section>

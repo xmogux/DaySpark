@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="page-shell">
-  <header class="topbar"><a class="brand" href="/"><span class="brand-mark">✦</span><span>DaySpark</span></a><nav><a class="nav-link" href="/">오늘</a><a class="nav-link active" href="/challenges">도전</a><a class="nav-link" href="/calendar">달력</a><a class="nav-link" href="/stats">통계</a><a class="nav-link" href="/focus">집중 타이머</a><a class="nav-link" href="/history">기록</a></nav></header>
+  <header th:replace="~{fragments/layout :: topbar('challenges')}"></header>
   <main class="form-page">
     <a class="back-link" href="/challenges">← 도전 목록</a>
     <section class="form-shell">

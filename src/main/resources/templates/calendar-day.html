@@ -4,21 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>날짜별 기록 — DaySpark</title>
-  <link rel="stylesheet" th:href="@{/css/app.css(v=55)}" href="/css/app.css?v=55">
+  <link rel="stylesheet" th:href="@{/css/app.css(v=56)}" href="/css/app.css?v=56">
 </head>
 <body class="calendar-page">
 <div class="page-shell">
-  <header class="topbar">
-    <a class="brand" href="/"><span class="brand-mark">✦</span><span>DaySpark</span></a>
-    <nav aria-label="주 메뉴">
-      <a class="nav-link" href="/">오늘</a>
-      <a class="nav-link" href="/challenges">도전</a>
-      <a class="nav-link active" href="/calendar" aria-current="page">달력</a>
-      <a class="nav-link" href="/stats">통계</a>
-      <a class="nav-link" href="/focus">집중 타이머</a>
-      <a class="nav-link" href="/history">기록</a>
-    </nav>
-  </header>
+  <header th:replace="~{fragments/layout :: topbar('calendar')}"></header>
   <main>
     <a class="cal-detail-back" th:href="@{/calendar(year=${date.year},month=${date.monthValue})}" href="/calendar">← 월간 달력 돌아가기</a>
     <div class="cal-detail-heading">
