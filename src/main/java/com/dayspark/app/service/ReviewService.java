@@ -79,6 +79,23 @@ public class ReviewService {
         return result;
     }
 
+    /**
+     * Reviews to show on the home screen for {@code today}: everything due today (done or not) plus
+     * every earlier review that is still not done. Overdue reviews stay until they are completed.
+     */
+    public List<ReviewItem> dueOn(LocalDate today) {
+        List<ReviewItem> result = new ArrayList<>();
+        for (Dare dare : dares.findAllByOrderByActiveDescIdAsc()) {
+            if (!dare.isReviewEnabled() || !"STUDY".equals(dare.getCategory())) continue;
+            for (ReviewItem item : planFor(dare)) {
+                boolean due = item.dueDate().equals(today) || item.isOverdue(today);
+                if (due && !dare.isPausedOn(item.dueDate())) result.add(item);
+            }
+        }
+        result.sort(Comparator.comparing(ReviewItem::dueDate).thenComparing(i -> i.dare().getId()));
+        return result;
+    }
+
     public List<ReviewItem> between(LocalDate start, LocalDate end) {
         List<ReviewItem> result = new ArrayList<>();
         for (Dare dare : dares.findAllByOrderByActiveDescIdAsc()) {
@@ -117,5 +134,6 @@ public class ReviewService {
                              boolean completed, LocalDateTime completedAt) {
         public boolean isOverdue(LocalDate today) { return !completed && dueDate.isBefore(today); }
         public boolean isToday(LocalDate today) { return !completed && dueDate.equals(today); }
+        public long daysOverdue(LocalDate today) { return isOverdue(today) ? java.time.temporal.ChronoUnit.DAYS.between(dueDate, today) : 0; }
     }
 }

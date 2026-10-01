@@ -56,7 +56,8 @@ public class HomeController {
         model.addAttribute("dailyProgress",dailyProgress);
         model.addAttribute("weeklyCounts",weeklyCounts);
         model.addAttribute("todayFocus",focusService.minutesBetween(today,today));
-        model.addAttribute("todayReviews", reviewService.forDate(today));
+        model.addAttribute("todayReviews", reviewService.dueOn(today));
+        model.addAttribute("todayDate", today);
         model.addAttribute("completedIds", completedIds);
         model.addAttribute("done", done);
         model.addAttribute("total", total);
