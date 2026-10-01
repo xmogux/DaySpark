@@ -76,6 +76,7 @@ public class FeatureController {
                 .mapToLong(FocusSession::getPlannedMinutes).sum();
 
         model.addAttribute("dare", dare);
+        model.addAttribute("units", DareService.GOAL_UNITS);
         model.addAttribute("progress", progress.progress(dare, today));
         model.addAttribute("weekDone", weekDone);
         model.addAttribute("monthDone", monthDone);

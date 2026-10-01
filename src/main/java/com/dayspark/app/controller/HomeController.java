@@ -1,5 +1,6 @@
 package com.dayspark.app.controller;
 
+import com.dayspark.app.domain.DareCategory;
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.service.CompletionService;
@@ -7,6 +8,7 @@ import com.dayspark.app.service.DareService;
 import com.dayspark.app.service.ProgressService;
 import com.dayspark.app.service.FocusService;
 import com.dayspark.app.service.ReviewService;
+import com.dayspark.app.service.dto.DareRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -99,48 +101,40 @@ public class HomeController {
 
     @GetMapping("/challenges/new")
     public String newChallenge(Model model) {
-        model.addAttribute("challenge", null);
-        model.addAttribute("today", LocalDate.now(clock));
+        if (!model.containsAttribute("form")) model.addAttribute("form", DareRequest.startingOn(LocalDate.now(clock)));
+        addFormOptions(model);
         return "challenge-form";
     }
 
     @GetMapping("/challenges/{id}/edit")
     public String editChallenge(@PathVariable Long id, Model model) {
-        model.addAttribute("challenge", dareService.get(id));
-        model.addAttribute("today", LocalDate.now(clock));
+        if (!model.containsAttribute("form")) model.addAttribute("form", DareRequest.from(dareService.get(id)));
+        model.addAttribute("challengeId", id);
+        addFormOptions(model);
         return "challenge-form";
     }
 
+    private void addFormOptions(Model model) {
+        model.addAttribute("categories", DareCategory.values());
+        model.addAttribute("units", DareService.GOAL_UNITS);
+    }
+
+    /** One endpoint for create (no id) and edit (id). On error the typed values are sent back to the form. */
     @PostMapping("/challenges/save")
-    public String saveChallenge(@RequestParam(required = false) Long id,
-                                @RequestParam String title,
-                                @RequestParam(defaultValue = "") String description,
-                                @RequestParam(defaultValue = "LIFE") String category,
-                                @RequestParam(defaultValue = "10") int minutes,
-                                @RequestParam(defaultValue = "1") int targetValue,
-                                @RequestParam(defaultValue = "회") String targetUnit,
-                                @RequestParam(defaultValue = "0") int weeklyTarget,
-                                @RequestParam(defaultValue = "DAILY") String repeatType,
-                                @RequestParam(required = false) List<String> repeatDays,
-                                @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                                @RequestParam(defaultValue = "false") boolean reviewEnabled,
-                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate reviewBaseDate,
-                                @RequestParam(defaultValue = "") String reviewIntervals,
+    public String saveChallenge(@RequestParam(required = false) Long id, @ModelAttribute DareRequest form,
                                 RedirectAttributes ra) {
         try {
             if (id == null) {
-                dareService.createWithGoalsAndReview(title, description, category, minutes, repeatType, repeatDays, startDate, endDate,
-                        targetValue, targetUnit, weeklyTarget, reviewEnabled, reviewBaseDate, reviewIntervals);
+                dareService.create(form);
                 ra.addFlashAttribute("success", "새 도전을 만들었습니다.");
             } else {
-                dareService.updateWithGoalsAndReview(id, title, description, category, minutes, repeatType, repeatDays, startDate, endDate,
-                        targetValue, targetUnit, weeklyTarget, reviewEnabled, reviewBaseDate, reviewIntervals);
+                dareService.update(id, form);
                 ra.addFlashAttribute("success", "도전을 수정했습니다.");
             }
             return "redirect:/challenges";
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("error", e.getMessage());
+            ra.addFlashAttribute("form", form);
             return id == null ? "redirect:/challenges/new" : "redirect:/challenges/" + id + "/edit";
         }
     }

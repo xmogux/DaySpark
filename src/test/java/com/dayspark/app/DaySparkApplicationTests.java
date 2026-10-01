@@ -13,11 +13,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import com.dayspark.app.model.Dare;
+import com.dayspark.app.service.dto.DareRequest;
 import com.dayspark.app.support.DaySparkIntegrationTest;
 import com.dayspark.app.support.IntegrationTestSupport;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MvcResult;
 
 @DaySparkIntegrationTest
 class DaySparkApplicationTests extends IntegrationTestSupport {
@@ -51,6 +53,34 @@ class DaySparkApplicationTests extends IntegrationTestSupport {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/challenges"));
         assertThat(dares.count()).isEqualTo(before + 1);
+    }
+
+    @Test
+    void newAndEditFormsRenderWithTheSavedValues() throws Exception {
+        Dare dare = dares.save(new Dare("독서", "30쪽", "STUDY", 20, "CUSTOM", "MONDAY,FRIDAY", TODAY, null));
+        mvc.perform(get("/challenges/new"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("challenge-form"))
+                .andExpect(model().attributeExists("form", "categories", "units"));
+        mvc.perform(get("/challenges/" + dare.getId() + "/edit"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("challengeId", dare.getId()))
+                .andExpect(content().string(containsString("value=\"독서\"")));
+    }
+
+    @Test
+    void invalidInputIsSentBackToTheFormInsteadOfBeingLost() throws Exception {
+        MvcResult result = mvc.perform(post("/challenges/save")
+                        .param("title", "내가 입력한 이름")
+                        .param("category", "STUDY")
+                        .param("repeatType", "CUSTOM") // no day selected -> validation error
+                        .param("startDate", TODAY.toString()))
+                .andExpect(redirectedUrl("/challenges/new"))
+                .andExpect(flash().attribute("error", "반복할 요일을 하나 이상 선택해주세요."))
+                .andReturn();
+        DareRequest kept = (DareRequest) result.getFlashMap().get("form");
+        assertThat(kept.getTitle()).isEqualTo("내가 입력한 이름");
+        assertThat(dares.count()).isZero();
     }
 
     @Test

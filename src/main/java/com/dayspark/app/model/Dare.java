@@ -3,14 +3,24 @@ package com.dayspark.app.model;
 import com.dayspark.app.domain.DareCategory;
 import com.dayspark.app.domain.RepeatType;
 import com.dayspark.app.domain.ReviewIntervals;
-import jakarta.persistence.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * A repeating challenge ("도전"). Owns its repeat rule, numeric goal and optional review plan.
+ * Changes go through four cohesive methods: {@link #describe}, {@link #reschedule},
+ * {@link #setGoals} and {@link #configureReview}.
+ */
 @Entity
 @Table(name = "dares")
 public class Dare {
@@ -44,7 +54,7 @@ public class Dare {
     @Column(nullable = false)
     private boolean active = true;
 
-    // If a challenge is paused, dates before this value still count for historical stats.
+    /** While paused, days from this date on are not planned. Earlier days keep counting for statistics. */
     private LocalDate pausedFrom;
 
     @Column(nullable = false, columnDefinition = "integer default 1")
@@ -68,21 +78,47 @@ public class Dare {
 
     public Dare(String title, String description, String category, int minutes,
                 String repeatType, String repeatDays, LocalDate startDate, LocalDate endDate) {
-        update(title, description, category, minutes, repeatType, repeatDays, startDate, endDate);
-        this.active = true;
-        this.pausedFrom = null;
+        describe(title, description, category, minutes);
+        reschedule(repeatType, repeatDays, startDate, endDate);
     }
 
-    public void update(String title, String description, String category, int minutes,
-                       String repeatType, String repeatDays, LocalDate startDate, LocalDate endDate) {
+    /** Name, description, category and expected minutes. */
+    public void describe(String title, String description, String category, int minutes) {
         this.title = title.trim();
         this.description = description == null ? "" : description.trim();
         this.category = DareCategory.parse(category).name();
         this.minutes = Math.max(1, minutes);
+    }
+
+    /** Repeat rule and period. {@code repeatDays} is a comma-separated list of DayOfWeek names. */
+    public void reschedule(String repeatType, String repeatDays, LocalDate startDate, LocalDate endDate) {
         this.repeatType = RepeatType.parse(repeatType).name();
         this.repeatDays = repeatDays == null ? "" : repeatDays.trim();
-        this.startDate = java.util.Objects.requireNonNull(startDate, "startDate");
+        this.startDate = Objects.requireNonNull(startDate, "startDate");
         this.endDate = endDate;
+    }
+
+    public void setGoals(int targetValue, String targetUnit, int weeklyTarget) {
+        this.targetValue = targetValue;
+        this.targetUnit = targetUnit;
+        this.weeklyTarget = weeklyTarget;
+    }
+
+    /** Turns the review plan on (with a base date and normalized intervals) or off. */
+    public void configureReview(boolean enabled, LocalDate baseDate, String normalizedIntervals) {
+        this.reviewEnabled = enabled;
+        this.reviewBaseDate = enabled ? (baseDate == null ? this.startDate : baseDate) : null;
+        this.reviewIntervals = enabled && normalizedIntervals != null ? normalizedIntervals : "";
+    }
+
+    public void pauseFrom(LocalDate day) {
+        this.active = false;
+        this.pausedFrom = day;
+    }
+
+    public void resume() {
+        this.active = true;
+        this.pausedFrom = null;
     }
 
     public boolean isWithinDateRange(LocalDate date) {
@@ -93,6 +129,7 @@ public class Dare {
         return !active && pausedFrom != null && !date.isBefore(pausedFrom);
     }
 
+    /** Whether the repeat rule alone (ignoring overrides and pauses) plans this date. */
     public boolean isScheduledFor(LocalDate date) {
         if (!isWithinDateRange(date)) return false;
         DayOfWeek day = date.getDayOfWeek();
@@ -129,39 +166,10 @@ public class Dare {
         return days.stream().sorted().map(d -> ko[d.getValue() - 1]).collect(Collectors.joining("·"));
     }
 
-    public void setGoals(int targetValue, String targetUnit, int weeklyTarget) {
-        this.targetValue = targetValue;
-        this.targetUnit = targetUnit;
-        this.weeklyTarget = weeklyTarget;
-    }
-
-
-    public void configureReview(boolean enabled, LocalDate baseDate, String intervals) {
-        this.reviewEnabled = enabled;
-        this.reviewBaseDate = enabled ? (baseDate == null ? this.startDate : baseDate) : null;
-        this.reviewIntervals = enabled && intervals != null ? intervals : "";
-    }
-
-    public void pauseFrom(LocalDate day) {
-        this.active = false;
-        this.pausedFrom = day;
-    }
-
-    public void resume() {
-        this.active = true;
-        this.pausedFrom = null;
-    }
-
-    public int getTargetValue() { return targetValue; }
-    public String getTargetUnit() { return targetUnit; }
-    public int getWeeklyTarget() { return weeklyTarget; }
-
-    public boolean isReviewEnabled() { return reviewEnabled; }
-    public LocalDate getReviewBaseDate() { return reviewBaseDate; }
-    public String getReviewIntervals() { return reviewIntervals; }
     public int getReviewCount() {
         return reviewEnabled ? ReviewIntervals.ofStored(reviewIntervals).size() : 0;
     }
+
     public Long getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
@@ -173,12 +181,10 @@ public class Dare {
     public LocalDate getEndDate() { return endDate; }
     public boolean isActive() { return active; }
     public LocalDate getPausedFrom() { return pausedFrom; }
-
-    /**
-     * Kept for JPA/tests. Prefer pauseFrom(day) or resume() so historical stats stay stable.
-     */
-    public void setActive(boolean active) {
-        this.active = active;
-        if (active) this.pausedFrom = null;
-    }
+    public int getTargetValue() { return targetValue; }
+    public String getTargetUnit() { return targetUnit; }
+    public int getWeeklyTarget() { return weeklyTarget; }
+    public boolean isReviewEnabled() { return reviewEnabled; }
+    public LocalDate getReviewBaseDate() { return reviewBaseDate; }
+    public String getReviewIntervals() { return reviewIntervals; }
 }
