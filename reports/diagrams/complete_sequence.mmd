@@ -1,0 +1,18 @@
+sequenceDiagram
+  actor User as 사용자
+  participant UI as 브라우저
+  participant Ctrl as HomeController
+  participant S as CompletionService
+  participant DB as CompletionRepository
+  User->>UI: 오늘 도전 완료·사진·메모 입력
+  UI->>Ctrl: POST /complete
+  Ctrl->>S: complete(dare, 오늘, 메모, 이미지)
+  S->>S: 반복 일정/기존 기록 확인
+  S->>DB: findByDareIdAndChallengeDate(...)
+  alt 신규 완료
+    S->>S: (선택) 이미지 저장
+    S->>DB: save(Completion)
+  else 이미 완료
+    S-->>Ctrl: 기존 완료 기록 반환
+  end
+  Ctrl-->>UI: 대시보드 리다이렉트

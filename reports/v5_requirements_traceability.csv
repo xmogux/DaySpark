@@ -1,0 +1,9 @@
+요구사항ID,기능,구현 위치,자동 테스트/검증,현재 상태
+R-V5-01,자정 넘김 집중 세션 날짜 보정,FocusSession.expectedCompletedDay / FocusService.finishInternal,FocusSessionUnitTests.completedDayUsesActualExpectedFinishTimeAcrossMidnight,테스트 코드 추가됨-로컬 mvn test 필요
+R-V5-02,GET 요청에서 DB 쓰기 제거,FocusService.current / FocusApi.current,코드 검수: current는 active 조회만 수행,정적 검수 완료
+R-V5-03,잘못된 repeatDays 입력 방어,DareService.validate / RepeatType enum / DayOfWeek 파싱,DaySparkApplicationTests.invalidRepeatDayIsRejectedInsteadOfCrashingLater,테스트 코드 추가됨-로컬 mvn test 필요
+R-V5-04,쉬기 기능의 과거 통계 분모 보존,Dare.pausedFrom / PlanningService.isScheduled / DareService.scheduledFor,캘린더 과거 날짜 계획 수 유지 시나리오,사용자 실행 확인 필요
+R-V5-05,예정일 기준 전체 Streak,CompletionService.calculateStreak,예정 없는 날 skip 로직 코드 검수,통합 테스트 추가 권장
+R-V5-06,Whitelabel 오류 페이지 제거,GlobalExceptionHandler / templates/error.html,DaySparkApplicationTests.invalidCalendarMonthShowsFriendlyErrorPage,테스트 코드 추가됨-로컬 mvn test 필요
+R-V5-07,업로드 이미지 삭제,DareService.deleteUploadedFileQuietly,도전 삭제 시 uploads 파일 삭제,사용자 실행 확인 필요
+R-V5-08,문서와 실행 파일명 일치,README.md / 00_START_DAYSPARK_CHROME.bat / docs/archive,패키지 파일명 확인,정적 검수 완료

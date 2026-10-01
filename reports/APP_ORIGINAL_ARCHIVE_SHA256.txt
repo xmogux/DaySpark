@@ -1,0 +1,3 @@
+Original app archive: dayspark_v2.zip
+SHA-256: ff8b253c4af51ebed630b46fdbce43d949fa54fe239a5b3030ad33707cdb90f9
+Note: Existing application source files copied verbatim from the original ZIP except README.md appendix; added reports/ only.

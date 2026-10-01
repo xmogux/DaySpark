@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>날짜별 기록 — DaySpark</title>
+  <link rel="stylesheet" th:href="@{/css/app.css(v=55)}" href="/css/app.css?v=55">
+</head>
+<body class="calendar-page">
+<div class="page-shell">
+  <header class="topbar">
+    <a class="brand" href="/"><span class="brand-mark">✦</span><span>DaySpark</span></a>
+    <nav aria-label="주 메뉴">
+      <a class="nav-link" href="/">오늘</a>
+      <a class="nav-link" href="/challenges">도전</a>
+      <a class="nav-link active" href="/calendar" aria-current="page">달력</a>
+      <a class="nav-link" href="/stats">통계</a>
+      <a class="nav-link" href="/focus">집중 타이머</a>
+      <a class="nav-link" href="/history">기록</a>
+    </nav>
+  </header>
+  <main>
+    <a class="cal-detail-back" th:href="@{/calendar(year=${date.year},month=${date.monthValue})}" href="/calendar">← 월간 달력 돌아가기</a>
+    <div class="cal-detail-heading">
+      <div>
+        <span class="eyebrow">DAILY JOURNAL</span>
+        <h1 th:text="${date}">2026-09-27</h1>
+        <p>이날 계획한 도전과 실제로 쌓아 올린 기록이에요.</p>
+      </div>
+      <span class="cal-detail-date-pill">하루의 기록 ✦</span>
+    </div>
+    <div class="cal-detail-stats">
+      <div><span>예정된 도전</span><strong th:text="${#lists.size(scheduled)}">3</strong><small>개</small></div>
+      <div><span>완료한 도전</span><strong th:text="${#lists.size(completed)}">2</strong><small>개</small></div>
+      <div><span>집중한 시간</span><strong th:text="${focusMinutes}">50</strong><small>분</small><em th:text="${#lists.size(sessions)} + '회 집중 완료'">2회 집중 완료</em></div>
+      <div><span>복습 일정</span><strong th:text="${#lists.size(reviews)}">1</strong><small>개</small><em>공부 도전 복습</em></div>
+    </div>
+    <div class="cal-detail-sections">
+      <section class="cal-detail-panel">
+        <h2>이날의 계획</h2>
+        <p class="cal-detail-empty" th:if="${#lists.isEmpty(scheduled)}">이날 예정된 도전이 없어요.</p>
+        <div class="cal-detail-row" th:each="d : ${scheduled}">
+          <span class="cal-detail-row-symbol">↗</span>
+          <div><a th:href="@{'/challenges/' + ${d.id}}" href="#" th:text="${d.title}">독서하기</a><span th:text="${d.repeatLabel}">매일</span></div>
+        </div>
+      </section>
+      <section class="cal-detail-panel">
+        <h2>완료한 도전</h2>
+        <p class="cal-detail-empty" th:if="${#lists.isEmpty(completed)}">아직 남긴 완료 기록이 없어요.</p>
+        <div class="cal-detail-row" th:each="c : ${completed}">
+          <span class="cal-detail-row-symbol is-done">✓</span>
+          <div>
+            <strong th:text="${c.dare.title}">알고리즘 공부</strong>
+            <span th:if="${c.note != null and !c.note.isEmpty()}" th:text="${c.note}">오늘도 꾸준히!</span>
+            <a class="cal-detail-photo" th:if="${c.imagePath != null}" th:href="${c.imagePath}" href="#" target="_blank" rel="noopener">완료 사진 보기 ↗</a>
+          </div>
+        </div>
+      </section>
+      <section class="cal-detail-panel cal-detail-wide" th:if="${!#lists.isEmpty(reviews)}">
+        <h2>복습 일정</h2>
+        <div class="cal-detail-row" th:each="r : ${reviews}">
+          <span class="cal-detail-row-symbol is-review" th:text="${r.completed ? '✓' : '↻'}">↻</span>
+          <div><a th:href="@{'/challenges/' + ${r.dare.id}}" th:text="${r.dare.title}">운영체제 Chapter 3</a><span th:text="${r.number} + '차 복습 · 기준일 +' + ${r.offsetDays} + '일'">1차 복습</span></div>
+          <div class="cal-review-actions"><span class="done-label" th:if="${r.completed}">완료됨</span><form th:unless="${r.completed}" th:action="@{'/challenges/'+${r.dare.id}+'/reviews/'+${r.offsetDays}+'/toggle'}" method="post"><input type="hidden" name="returnTo" value="calendar"><input type="hidden" name="date" th:value="${date}"><button class="secondary-btn" type="submit">복습 완료</button></form></div>
+        </div>
+      </section>
+      <section class="cal-detail-panel cal-detail-wide">
+        <h2>포모도로 집중 기록</h2>
+        <p class="cal-detail-empty" th:if="${#lists.isEmpty(sessions)}">이날 완료한 집중 세션은 없어요.</p>
+        <div class="cal-detail-focus-list">
+          <div class="cal-detail-focus-row" th:each="s : ${sessions}">
+            <span class="cal-detail-row-symbol is-focus">◷</span>
+            <strong th:text="${s.dare.title}">알고리즘 공부</strong>
+            <span class="cal-detail-focus-minutes" th:text="${s.plannedMinutes} + '분'">25분</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

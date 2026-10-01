@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaySpark 오류</title>
+    <link rel="stylesheet" href="/css/app.css?v=55">
+</head>
+<body>
+<div class="page-shell">
+    <nav class="top-nav">
+        <a class="brand" href="/">DaySpark</a>
+        <div class="nav-links">
+            <a href="/">오늘</a><a href="/challenges">도전</a><a href="/focus">집중</a><a href="/calendar">달력</a><a href="/stats">통계</a><a href="/history">기록</a>
+        </div>
+    </nav>
+    <section class="hero-card compact">
+        <span class="eyebrow" th:text="${status}">400</span>
+        <h1 th:text="${title}">요청을 처리할 수 없습니다</h1>
+        <p class="muted" th:text="${message}">입력값이나 주소가 올바르지 않습니다.</p>
+        <div class="actions">
+            <a class="btn primary" href="/">오늘 화면으로</a>
+            <a class="btn ghost" href="/challenges">도전 관리</a>
+        </div>
+    </section>
+</div>
+</body>
+</html>

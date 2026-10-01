@@ -1,0 +1,8 @@
+target/
+.tools/
+uploads/
+*.mv.db
+*.trace.db
+*.log
+.DS_Store
+Thumbs.db

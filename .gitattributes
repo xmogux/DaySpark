@@ -1,0 +1,26 @@
+# Normalize text files to LF in the repository.
+* text=auto
+
+# Unix shell scripts must keep LF (CRLF breaks /bin/sh: "^M: bad interpreter").
+mvnw        text eol=lf
+*.sh        text eol=lf
+
+# Windows scripts must keep CRLF (cmd.exe misparses LF-only batch files).
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+*.ps1       text eol=crlf
+
+# Binary files: never touch line endings or try to diff them as text.
+*.jar       binary
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.webp      binary
+*.ico       binary
+*.docx      binary
+*.pptx      binary
+*.xlsx      binary
+*.pdf       binary
+*.zip       binary
+*.mv.db     binary

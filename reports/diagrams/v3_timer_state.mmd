@@ -1,0 +1,9 @@
+stateDiagram-v2
+    [*] --> RUNNING : /api/focus/start
+    RUNNING --> PAUSED : pause
+    PAUSED --> RUNNING : resume
+    RUNNING --> COMPLETED : planned minutes elapsed (server verified)
+    RUNNING --> CANCELLED : cancel
+    PAUSED --> CANCELLED : cancel
+    COMPLETED --> [*]
+    CANCELLED --> [*]

@@ -1,0 +1,23 @@
+﻿DaySpark v5.4 · 달력 디자인 개편판
+
+1. 기존 DaySpark 서버를 종료합니다. 예전 폴더의 03_STOP_DAYSPARK.bat 사용.
+   포트 8080이 다른 프로그램에 사용 중이면 새 버전을 열지 않습니다.
+2. 이 ZIP을 반드시 모두 압축 풉니다. ZIP 파일 탐색창에서 바로 실행하지 마세요.
+3. 00_START_DAYSPARK_CHROME.bat을 두 번 클릭합니다. 서버가 준비되면 Chrome이 열립니다.
+4. 새 달력을 보려면 상단 '달력'을 누르세요. 달력 하단 '달력 UI v5.4'를 확인하세요.
+
+서버 없이 디자인부터 보고 싶을 때:
+   04_OPEN_CALENDAR_PREVIEW_CHROME.bat 더블클릭
+   (표시 데이터는 예시이며 실제 DB와 무관합니다.)
+
+기존 기록 이어 쓰기: 이전 서버 종료 후 옛 폴더의 dayspark_v2.mv.db,
+uploads 폴더(있으면)를 이 새 폴더로 복사하세요. 선택 사항입니다.
+
+기존 Maven 자동 재사용: PATH → .tools 폴더 → 공용 캐시 순으로 탐색합니다.
+예전 폴더에만 Maven이 있다면 예전 .tools 폴더를 복사할 수 있습니다.
+실행 오류: 02_OPEN_ERROR_LOG.bat
+종료: 03_STOP_DAYSPARK.bat
+
+기존 보고서와 발표 양식은 reports/에 그대로 포함돼 있습니다.
+Windows에서 Spring Boot 전체 재실행은 제작 환경에서 검증하지 못했습니다.
+자세한 기술 설명과 검증 범위는 README.md 참고.

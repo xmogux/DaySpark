@@ -1,0 +1,22 @@
+erDiagram
+  DARE ||--o{ COMPLETION : has
+  DARE {
+    long id PK
+    string title
+    string description
+    string category
+    int minutes
+    string repeatType
+    string repeatDays
+    date startDate
+    date endDate
+    boolean active
+  }
+  COMPLETION {
+    long id PK
+    long dare_id FK
+    date challengeDate
+    string note
+    string imagePath
+    datetime completedAt
+  }

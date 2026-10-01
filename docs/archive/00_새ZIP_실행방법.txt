@@ -1,0 +1,9 @@
+DaySpark v5.3 — Full standalone source package
+
+1. Unzip everything into a NEW folder. Do NOT run from inside ZIP.
+2. Close previous DaySpark server (if another folder uses port 8080, close it first).
+3. Double-click 00_START_DAYSPARK_CHROME.bat to run real Spring Boot web app and open Chrome.
+4. For immediate browser preview without server use 01_TRY_NOW_CHROME_NO_SERVER.bat.
+
+This is a complete project, not a patch. No need to apply previous ZIPs.
+Note: Maven and dependencies may download on first run. Windows runtime startup still requires validation on your PC.

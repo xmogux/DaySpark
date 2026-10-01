@@ -1,0 +1,10 @@
+flowchart LR
+  Browser[웹 브라우저] --> MVC[HomeController / Spring MVC]
+  MVC --> View[Thymeleaf 템플릿]
+  MVC --> DS[DareService]
+  MVC --> CS[CompletionService]
+  DS --> DR[DareRepository]
+  CS --> CR[CompletionRepository]
+  DR --> H2[(H2 DB)]
+  CR --> H2
+  CS --> Upload[(uploads 이미지 파일)]

@@ -1,0 +1,7 @@
+﻿요구사항 ID,요구사항 요약,유스케이스,주요 코드,연계 테스트,우선순위(수정),실제 확인상태(수정)
+FR-01,도전 CRUD 및 쉬기/재개,UC-01/UC-04,HomeController / DareService / DareRepository,TC-01,상,미실행
+FR-02,반복 일정,UC-01,Dare.isScheduledFor / DareService,TC-02,상,미실행
+FR-03,오늘 목록 및 진행률,UC-02,HomeController.home,TC-03,상,미실행
+FR-04,중복 완료 방지,UC-02,CompletionService.complete / Completion unique constraint,TC-04,상,미실행
+FR-05,사진 및 300자 메모,UC-02,CompletionService.saveImage/complete,TC-05/TC-06,중,미실행
+FR-06,달력/이력/Streak/통계,UC-03,HomeController / CompletionService.calculateStreak,TC-07/TC-08,상,미실행
