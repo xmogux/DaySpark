@@ -7,11 +7,12 @@
 
 | 항목 | 기준 |
 |---|---|
-| Java | **17** (`pom.xml`의 `java.version`; JDK 17 이상에서 실행 가능) |
+| Java | **17** (`pom.xml`의 `java.version`; JDK 17 이상에서 실행 가능, CI는 JDK 17·25에서 검증) |
 | 빌드 | Maven Wrapper (`mvnw`, `mvnw.cmd`) — Maven을 따로 설치하지 않아도 됨 |
 | 프레임워크 | Spring Boot 3.5 (Web, Thymeleaf, Data JPA, Validation) |
 | DB | H2 파일 DB (`./dayspark_v2.mv.db`) |
-| 테스트 | JUnit 5, Spring Boot Test(MockMvc) |
+| 테스트 | JUnit 5, Spring Boot Test(MockMvc), JaCoCo 커버리지 |
+| CI | GitHub Actions (`.github/workflows/ci.yml`) — push/PR마다 `./mvnw verify` |
 
 ## 실행
 
@@ -47,7 +48,7 @@ git add mvnw mvnw.cmd .mvn && git commit -m "build: add Maven Wrapper"
 
 ```bash
 ./mvnw test      # 단위 + 통합 테스트
-./mvnw verify    # 전체 빌드 + 테스트
+./mvnw verify    # 테스트 + JaCoCo 커버리지 리포트 (target/site/jacoco/index.html)
 ```
 
 Windows CMD/PowerShell에서는 `mvnw.cmd test`, `mvnw.cmd verify`.
