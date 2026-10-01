@@ -13,6 +13,22 @@
 | DB | H2 파일 DB (`./dayspark_v2.mv.db`) |
 | 테스트 | JUnit 5, Spring Boot Test(MockMvc) |
 
+## 실행
+
+**Windows:** `RUN_DAYSPARK.bat` 더블클릭.
+서버가 그 창에서 실행되고, 준비되면 기본 브라우저로 `http://localhost:8080/`이 열립니다.
+종료는 창에서 `Ctrl+C` 또는 창 닫기. 8080 포트가 이미 사용 중이면 실행하지 않고 안내합니다.
+
+**WSL / Linux / macOS:**
+
+```bash
+./mvnw spring-boot:run
+# 브라우저에서 http://localhost:8080/
+```
+
+서버는 `127.0.0.1`에만 바인딩됩니다(단일 사용자 로컬 앱). 데이터는 실행 폴더의
+`dayspark_v2.mv.db`, 업로드 사진은 `uploads/`에 저장됩니다.
+
 ## Maven Wrapper
 
 `mvnw`/`mvnw.cmd`가 저장소에 없다면 **한 번만** 생성해서 커밋합니다 (Maven이 설치된 환경 필요).
