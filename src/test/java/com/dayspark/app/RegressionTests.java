@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
+import com.dayspark.app.model.FocusSession;
 import com.dayspark.app.service.ReviewService.ReviewItem;
 import com.dayspark.app.service.view.DailyStat;
 import com.dayspark.app.support.DaySparkIntegrationTest;
@@ -24,7 +25,9 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -34,6 +37,9 @@ class RegressionTests extends IntegrationTestSupport {
 
     @Value("${app.upload-dir}")
     private String uploadDir;
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     /**
      * Bug: after a challenge's repeat rule changed, past completions were still counted but the
@@ -166,5 +172,22 @@ class RegressionTests extends IntegrationTestSupport {
             .andExpect(status().isOk())
             .andExpect(content().string(containsString(">WORK<")))
             .andExpect(content().string(not(containsString("MIND"))));
+    }
+
+    /**
+     * Bug introduced and caught during the StatsService refactor: focus sessions completed before
+     * v5 have no completed_day. The old controller skipped them; the new aggregation threw a
+     * NullPointerException and the challenge detail page returned 500.
+     */
+    @Test
+    void detailPageToleratesFocusSessionsFromBeforeV5() throws Exception {
+        Dare study = dailyDare("옛 기록", "STUDY");
+        FocusSession session = new FocusSession(study, 25, clock.instant());
+        clock.advance(java.time.Duration.ofMinutes(25));
+        session.complete(clock.instant(), clock.getZone());
+        focusSessions.save(session);
+        jdbc.update("update focus_sessions set completed_day = null");
+
+        mvc.perform(get("/challenges/" + study.getId())).andExpect(status().isOk());
     }
 }

@@ -277,17 +277,18 @@ public class StatsService {
             completedDates::contains
         );
 
+        // Sessions completed before v5 have no completedDay; they count in totals but not per period.
         List<FocusSession> sessions = focus.completedFor(dare);
         long weekFocus = minutes(
             sessions
                 .stream()
-                .filter(s -> !s.getCompletedDay().isBefore(weekStart))
+                .filter(s -> s.getCompletedDay() != null && !s.getCompletedDay().isBefore(weekStart))
                 .toList()
         );
         long monthFocus = minutes(
             sessions
                 .stream()
-                .filter(s -> !s.getCompletedDay().isBefore(monthStart))
+                .filter(s -> s.getCompletedDay() != null && !s.getCompletedDay().isBefore(monthStart))
                 .toList()
         );
         List<ReviewItem> reviewPlan = reviews.planFor(dare);

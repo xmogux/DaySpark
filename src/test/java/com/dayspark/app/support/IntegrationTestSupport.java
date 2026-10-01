@@ -45,7 +45,7 @@ public abstract class IntegrationTestSupport {
     protected ReviewRecordRepository reviewRecords;
 
     @BeforeEach
-    void resetState() {
+    protected void resetState() {
         clock.setInstant(TestDates.TODAY_NOON);
         reviewRecords.deleteAll();
         focusSessions.deleteAll();
