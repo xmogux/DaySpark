@@ -40,7 +40,7 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model) {
         LocalDate today = LocalDate.now(clock);
-        List<Dare> todayDares = dareService.scheduledFor(today);
+        List<Dare> todayDares = dareService.plannedFor(today);
         Set<Long> completedIds = completionService.completedDareIds(today);
         int total = todayDares.size();
         int done = (int) todayDares.stream().filter(d -> completedIds.contains(d.getId())).count();

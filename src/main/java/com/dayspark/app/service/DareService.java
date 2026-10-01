@@ -22,6 +22,8 @@ import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class DareService {
@@ -62,8 +64,22 @@ public class DareService {
         return all().stream().filter(d -> planning.isScheduled(d, date)).toList();
     }
 
+    /**
+     * Challenges that count towards a day's plan: those scheduled by their current rule plus any
+     * challenge completed that day. A completion proves the challenge was planned when it was
+     * recorded, so editing a repeat rule or pausing later never makes done exceed planned.
+     */
+    public List<Dare> plannedFor(LocalDate date) {
+        Set<Long> completedIds = completionRepository.findByChallengeDate(date).stream()
+                .map(c -> c.getDare().getId())
+                .collect(Collectors.toSet());
+        return all().stream()
+                .filter(d -> completedIds.contains(d.getId()) || planning.isScheduled(d, date))
+                .toList();
+    }
+
     public long plannedCount(LocalDate date) {
-        return scheduledFor(date).size();
+        return plannedFor(date).size();
     }
 
     public Dare get(Long id) {

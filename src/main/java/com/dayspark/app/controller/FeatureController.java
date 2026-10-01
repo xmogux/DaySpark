@@ -62,7 +62,7 @@ public class FeatureController {
         long monthDone = dareCompletions.stream().filter(c -> !c.getChallengeDate().isBefore(monthStart)).count();
         long monthPlanned = 0;
         for (LocalDate date = monthStart; !date.isAfter(today); date = date.plusDays(1)) {
-            if (planning.isScheduled(dare, date)) monthPlanned++;
+            if (completedDates.contains(date) || planning.isScheduled(dare, date)) monthPlanned++;
         }
 
         int goalStreak = goalStreak(dare, today, completedDates);
@@ -98,7 +98,7 @@ public class FeatureController {
         int streak = 0;
         LocalDate day = completed.contains(today) ? today : today.minusDays(1);
         for (int checked = 0; checked < 366 && !day.isBefore(dare.getStartDate()); checked++, day = day.minusDays(1)) {
-            if (!planning.isScheduled(dare, day)) continue;
+            if (!completed.contains(day) && !planning.isScheduled(dare, day)) continue;
             if (!completed.contains(day)) break;
             streak++;
         }
@@ -174,7 +174,7 @@ public class FeatureController {
             throw new IllegalArgumentException("날짜 범위를 벗어났습니다.");
         }
         model.addAttribute("date", date);
-        model.addAttribute("scheduled", dares.scheduledFor(date));
+        model.addAttribute("scheduled", dares.plannedFor(date));
         model.addAttribute("completed", completions.forDate(date));
         model.addAttribute("reviews", reviews.forDate(date));
         List<FocusSession> sessions = focus.completedBetween(date, date);

@@ -110,8 +110,9 @@ public class CompletionService {
         int checked = 0;
         while (checked < 366) {
             // A mutable cursor cannot be captured in a Java lambda.
-            boolean hasSchedule = false;
+            boolean hasSchedule = completedDates.contains(cursor);
             for (Dare dare : allDares) {
+                if (hasSchedule) break;
                 if (planning.isScheduled(dare, cursor)) {
                     hasSchedule = true;
                     break;
