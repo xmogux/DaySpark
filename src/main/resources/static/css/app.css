@@ -217,3 +217,7 @@
 .review-row{grid-template-columns:42px minmax(0,1fr) auto auto}.review-row .review-status:empty{display:none}
 @media(max-width:650px){.review-row{grid-template-columns:38px minmax(0,1fr) auto}.review-row .review-toggle-form{grid-column:2/-1}.review-row .review-status{grid-column:3}}
 .review-preview{grid-column:1/-1;border-top:1px dashed #d9dfcf;padding-top:12px}.review-preview>span{display:block;font-size:.66rem;font-weight:900;color:#738065;margin-bottom:8px}.review-preview>div{display:flex;flex-wrap:wrap;gap:6px}.review-preview>div>span{display:inline-flex;padding:7px 9px;border-radius:9px;background:#fff;border:1px solid #dde3d6;font-size:.67rem;font-weight:800;color:#596650}
+
+/* v5.6: overdue reviews stay on the home screen */
+.review-home-card .review-overdue{color:#a2643d;font-weight:900}
+.section-note{margin:4px 0 0;font-size:.72rem;color:#808a7b}

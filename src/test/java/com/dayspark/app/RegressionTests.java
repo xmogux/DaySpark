@@ -9,11 +9,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
+import com.dayspark.app.service.ReviewService.ReviewItem;
 import com.dayspark.app.support.DaySparkIntegrationTest;
 import com.dayspark.app.support.IntegrationTestSupport;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.web.servlet.MvcResult;
 
 /** One test per bug found in the v5.5 review. Each test was committed before its fix. */
 @DaySparkIntegrationTest
@@ -67,5 +70,29 @@ class RegressionTests extends IntegrationTestSupport {
 
         assertThat(exceptions.findByDareIdAndDay(weekendWalk.getId(), TODAY)).isPresent();
         mvc.perform(get("/")).andExpect(model().attribute("done", 1)).andExpect(model().attribute("total", 1));
+    }
+
+    /**
+     * Bug: the home screen listed only reviews due exactly today. A review missed yesterday vanished
+     * from the home screen and could only be found on the challenge detail page.
+     */
+    @Test
+    void overdueReviewsStayOnTheHomeScreenUntilDone() throws Exception {
+        mvc.perform(post("/challenges/save")
+                        .param("title", "운영체제 3장")
+                        .param("category", "STUDY")
+                        .param("repeatType", "DAILY")
+                        .param("startDate", TODAY.minusDays(5).toString())
+                        .param("reviewEnabled", "true")
+                        .param("reviewBaseDate", TODAY.minusDays(5).toString())
+                        .param("reviewIntervals", "1,3,7"))
+                .andExpect(flash().attributeExists("success"));
+
+        MvcResult home = mvc.perform(get("/")).andExpect(status().isOk()).andReturn();
+        @SuppressWarnings("unchecked")
+        List<ReviewItem> due = (List<ReviewItem>) home.getModelAndView().getModel().get("todayReviews");
+
+        // +1 (due 4 days ago) and +3 (due 2 days ago) are overdue; +7 is due in 2 days.
+        assertThat(due).extracting(ReviewItem::offsetDays).containsExactly(1, 3);
     }
 }
