@@ -20,6 +20,7 @@ git log --oneline --graph      # 브랜치와 병합 구조 보기
 | 버그 | `fix/category-options` | MIND 카테고리 |
 | 구조 | `refactor/structure` | DTO, `ReviewIntervals`, `StatsService`, 컨트롤러 분리, 오류 처리, fragment, 포맷 |
 | 빌드 | `build/jacoco-ci` | JaCoCo, GitHub Actions |
+| 버그 | `fix/legacy-focus-sessions` | 리팩터링 중 생긴 회귀(완료일 없는 옛 집중 기록) — 테스트 → 수정 |
 | 문서 | `docs/design-and-process` | 요구사항·설계·테스트·과정·한계 문서 |
 
 이 이력은 로컬에서 만든 뒤 GitHub에 한 번에 올린 것입니다. 그래서 위 브랜치들에는 GitHub의 PR·리뷰 기록이 없습니다.
@@ -92,5 +93,5 @@ flowchart LR
 | 단계 | 내용 |
 |---|---|
 | JDK | 17(프로젝트 기준), 25(팀 Windows PC) 두 버전 동시 |
-| 빌드 | `./mvnw -B -ntp verify` (컴파일 → 테스트 54개 → JaCoCo) |
+| 빌드 | `./mvnw -B -ntp verify` (컴파일 → 테스트 55개 → JaCoCo) |
 | 결과 | JDK 17 실행 요약에 패키지별 커버리지 표, `jacoco-report`·`surefire-reports-*` 아티팩트 업로드 |

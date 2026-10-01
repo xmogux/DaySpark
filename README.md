@@ -17,7 +17,7 @@
 | [docs/requirements.md](docs/requirements.md) | 기능·비기능 요구사항, 수용 기준, 대응 테스트 |
 | [docs/domain-rules.md](docs/domain-rules.md) | 하루의 계획, 일정 예외, 완료/취소, Streak, 복습 플랜, 포모도로 연결 규칙 |
 | [docs/architecture.md](docs/architecture.md) | 계층 구조, 클래스 다이어그램, ERD, 시퀀스·상태 다이어그램, 설계 결정 |
-| [docs/testing.md](docs/testing.md) | 테스트 54개 구성, 버그별 회귀 테스트, 실행 결과 기록 |
+| [docs/testing.md](docs/testing.md) | 테스트 55개 구성, 버그별 회귀 테스트, 실행 결과 기록 |
 | [docs/process.md](docs/process.md) | Git 이력, GitHub 올리기, Issue → PR → CI 작업 방식 |
 | [docs/limitations.md](docs/limitations.md) | 하지 않은 것과 이유(N+1, 단일 사용자, Docker 미사용 등) |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | 버전별 변경 |
