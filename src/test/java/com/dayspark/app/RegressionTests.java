@@ -1,7 +1,9 @@
 package com.dayspark.app;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,5 +46,26 @@ class RegressionTests extends IntegrationTestSupport {
                 .andExpect(model().attribute("weekRate", 100L))
                 .andExpect(model().attribute("monthRate", 100L))
                 .andExpect(model().attribute("weekDone", 6L));
+    }
+
+    /**
+     * Bug: SKIP was blocked on a completed date but RESET was not. ADD an extra day, complete it,
+     * then RESET: the completion stayed while the day was no longer scheduled, so the home screen
+     * showed 0/1 and the statistics still counted it.
+     */
+    @Test
+    void resetIsRejectedOnACompletedDate() throws Exception {
+        Dare weekendWalk = dares.save(new Dare("주말 산책", "", "MOVE", 20, "WEEKENDS", "", TODAY.minusDays(10), null));
+        String id = weekendWalk.getId().toString();
+        mvc.perform(post("/challenges/" + id + "/schedule").param("date", TODAY.toString()).param("mode", "ADD"))
+                .andExpect(flash().attributeExists("success"));
+        mvc.perform(post("/complete").param("dareId", id)).andExpect(flash().attributeExists("success"));
+
+        mvc.perform(post("/challenges/" + id + "/schedule").param("date", TODAY.toString()).param("mode", "RESET"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("error"));
+
+        assertThat(exceptions.findByDareIdAndDay(weekendWalk.getId(), TODAY)).isPresent();
+        mvc.perform(get("/")).andExpect(model().attribute("done", 1)).andExpect(model().attribute("total", 1));
     }
 }
