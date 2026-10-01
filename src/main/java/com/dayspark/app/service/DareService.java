@@ -2,6 +2,7 @@ package com.dayspark.app.service;
 
 import com.dayspark.app.domain.DareCategory;
 import com.dayspark.app.domain.RepeatType;
+import com.dayspark.app.domain.ReviewIntervals;
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.repository.CompletionRepository;
@@ -10,18 +11,25 @@ import com.dayspark.app.repository.FocusSessionRepository;
 import com.dayspark.app.repository.ProgressLogRepository;
 import com.dayspark.app.repository.ReviewRecordRepository;
 import com.dayspark.app.repository.ScheduleExceptionRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
-
+import com.dayspark.app.service.dto.DareRequest;
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+/** Creating, editing, pausing and deleting challenges, and deciding which challenges a day plans. */
 @Service
 public class DareService {
+
+    /** Units offered for the numeric daily goal. The form and the validation both use this list. */
+    public static final List<String> GOAL_UNITS = List.of("분", "페이지", "회", "개", "잔");
+
     private final DareRepository dareRepository;
     private final CompletionRepository completionRepository;
     private final ScheduleExceptionRepository exceptionRepository;
@@ -32,9 +40,17 @@ public class DareService {
     private final ImageStorage images;
     private final Clock clock;
 
-    public DareService(DareRepository dareRepository, CompletionRepository completionRepository,
-                       ScheduleExceptionRepository exceptionRepository, FocusSessionRepository focusRepository,
-                       ProgressLogRepository progressRepository, ReviewRecordRepository reviewRecordRepository, PlanningService planning, ImageStorage images, Clock clock) {
+    public DareService(
+        DareRepository dareRepository,
+        CompletionRepository completionRepository,
+        ScheduleExceptionRepository exceptionRepository,
+        FocusSessionRepository focusRepository,
+        ProgressLogRepository progressRepository,
+        ReviewRecordRepository reviewRecordRepository,
+        PlanningService planning,
+        ImageStorage images,
+        Clock clock
+    ) {
         this.dareRepository = dareRepository;
         this.completionRepository = completionRepository;
         this.exceptionRepository = exceptionRepository;
@@ -54,8 +70,8 @@ public class DareService {
         return dareRepository.findByActiveTrueOrderByIdAsc();
     }
 
-    public List<Dare> scheduledFor(LocalDate date) {
-        return all().stream().filter(d -> planning.isScheduled(d, date)).toList();
+    public Dare get(Long id) {
+        return dareRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("도전을 찾을 수 없습니다."));
     }
 
     /**
@@ -64,57 +80,55 @@ public class DareService {
      * recorded, so editing a repeat rule or pausing later never makes done exceed planned.
      */
     public List<Dare> plannedFor(LocalDate date) {
-        Set<Long> completedIds = completionRepository.findByChallengeDate(date).stream()
-                .map(c -> c.getDare().getId())
-                .collect(Collectors.toSet());
-        return all().stream()
-                .filter(d -> completedIds.contains(d.getId()) || planning.isScheduled(d, date))
-                .toList();
+        Set<Long> completedIds = completionRepository
+            .findByChallengeDate(date)
+            .stream()
+            .map(c -> c.getDare().getId())
+            .collect(Collectors.toSet());
+        return all()
+            .stream()
+            .filter(d -> completedIds.contains(d.getId()) || planning.isScheduled(d, date))
+            .toList();
     }
 
     public long plannedCount(LocalDate date) {
         return plannedFor(date).size();
     }
 
-    public Dare get(Long id) {
-        return dareRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("도전을 찾을 수 없습니다."));
-    }
-
-    public Dare create(String title, String description, String category, int minutes, String repeatType,
-                       List<String> repeatDays, LocalDate startDate, LocalDate endDate) {
-        validate(title, startDate, endDate, repeatType, repeatDays, category);
-        return dareRepository.save(new Dare(title, description, category, minutes, RepeatType.parse(repeatType).name(),
-                normalizeRepeatDays(repeatDays), startDate, endDate));
-    }
-
-    public Dare update(Long id, String title, String description, String category, int minutes, String repeatType,
-                       List<String> repeatDays, LocalDate startDate, LocalDate endDate) {
-        validate(title, startDate, endDate, repeatType, repeatDays, category);
-        Dare dare = get(id);
-        dare.update(title, description, category, minutes, RepeatType.parse(repeatType).name(),
-                normalizeRepeatDays(repeatDays), startDate, endDate);
+    @Transactional
+    public Dare create(DareRequest request) {
+        Validated v = validate(request);
+        Dare dare = new Dare(
+            request.getTitle(),
+            request.getDescription(),
+            v.category().name(),
+            request.getMinutes(),
+            v.repeatType().name(),
+            v.repeatDays(),
+            request.getStartDate(),
+            request.getEndDate()
+        );
+        dare.setGoals(request.getTargetValue(), request.getTargetUnit(), request.getWeeklyTarget());
+        dare.configureReview(v.review() != null, v.reviewBase(), v.review() == null ? "" : v.review().normalized());
         return dareRepository.save(dare);
     }
 
-    private String normalizeRepeatDays(List<String> repeatDays) {
-        if (repeatDays == null) return "";
-        return repeatDays.stream().map(this::parseDay).map(DayOfWeek::name).distinct().reduce((a, b) -> a + "," + b).orElse("");
+    /** Applies the whole form. If the review plan itself changed, old review check marks are cleared. */
+    @Transactional
+    public Dare update(Long id, DareRequest request) {
+        Validated v = validate(request);
+        Dare dare = get(id);
+        String reviewBefore = reviewFingerprint(dare);
+        dare.describe(request.getTitle(), request.getDescription(), v.category().name(), request.getMinutes());
+        dare.reschedule(v.repeatType().name(), v.repeatDays(), request.getStartDate(), request.getEndDate());
+        dare.setGoals(request.getTargetValue(), request.getTargetUnit(), request.getWeeklyTarget());
+        dare.configureReview(v.review() != null, v.reviewBase(), v.review() == null ? "" : v.review().normalized());
+        if (!reviewBefore.equals(reviewFingerprint(dare))) reviewRecordRepository.deleteAllByDareId(id);
+        return dareRepository.save(dare);
     }
 
-    private DayOfWeek parseDay(String value) {
-        try {
-            return DayOfWeek.valueOf(value.trim().toUpperCase());
-        } catch (RuntimeException ex) {
-            throw new IllegalArgumentException("지원되지 않는 요일 값입니다.");
-        }
-    }
-
-    private void validateGoals(int targetValue, String targetUnit, int weeklyTarget) {
-        if (targetValue < 1 || targetValue > 10000) throw new IllegalArgumentException("목표 수치는 1~10000 사이여야 합니다.");
-        if (!List.of("분", "페이지", "회", "개", "잔").contains(targetUnit)) throw new IllegalArgumentException("지원되지 않는 목표 단위입니다.");
-        if (weeklyTarget < 0 || weeklyTarget > 7) throw new IllegalArgumentException("주간 목표는 0~7회로 설정해주세요.");
-    }
-
+    /** Goal-only update from the challenge detail page. */
+    @Transactional
     public Dare configureGoals(Long id, int targetValue, String targetUnit, int weeklyTarget) {
         validateGoals(targetValue, targetUnit, weeklyTarget);
         Dare dare = get(id);
@@ -123,79 +137,6 @@ public class DareService {
     }
 
     @Transactional
-    public Dare createWithGoals(String title, String description, String category, int minutes, String repeatType,
-                                List<String> repeatDays, LocalDate startDate, LocalDate endDate,
-                                int targetValue, String targetUnit, int weeklyTarget) {
-        validateGoals(targetValue, targetUnit, weeklyTarget);
-        Dare dare = create(title, description, category, minutes, repeatType, repeatDays, startDate, endDate);
-        dare.setGoals(targetValue, targetUnit, weeklyTarget);
-        return dareRepository.save(dare);
-    }
-
-    @Transactional
-    public Dare updateWithGoals(Long id, String title, String description, String category, int minutes, String repeatType,
-                                List<String> repeatDays, LocalDate startDate, LocalDate endDate,
-                                int targetValue, String targetUnit, int weeklyTarget) {
-        validateGoals(targetValue, targetUnit, weeklyTarget);
-        Dare dare = update(id, title, description, category, minutes, repeatType, repeatDays, startDate, endDate);
-        dare.setGoals(targetValue, targetUnit, weeklyTarget);
-        return dareRepository.save(dare);
-    }
-
-    @Transactional
-    public Dare createWithGoalsAndReview(String title, String description, String category, int minutes, String repeatType,
-                                         List<String> repeatDays, LocalDate startDate, LocalDate endDate,
-                                         int targetValue, String targetUnit, int weeklyTarget,
-                                         boolean reviewEnabled, LocalDate reviewBaseDate, String reviewIntervals) {
-        validateGoals(targetValue, targetUnit, weeklyTarget);
-        String normalized = validateAndNormalizeReview(category, reviewEnabled, reviewBaseDate, reviewIntervals, startDate);
-        Dare dare = create(title, description, category, minutes, repeatType, repeatDays, startDate, endDate);
-        dare.setGoals(targetValue, targetUnit, weeklyTarget);
-        dare.configureReview(reviewEnabled && "STUDY".equals(dare.getCategory()),
-                reviewBaseDate == null ? dare.getStartDate() : reviewBaseDate, normalized);
-        return dareRepository.save(dare);
-    }
-
-    @Transactional
-    public Dare updateWithGoalsAndReview(Long id, String title, String description, String category, int minutes, String repeatType,
-                                         List<String> repeatDays, LocalDate startDate, LocalDate endDate,
-                                         int targetValue, String targetUnit, int weeklyTarget,
-                                         boolean reviewEnabled, LocalDate reviewBaseDate, String reviewIntervals) {
-        validateGoals(targetValue, targetUnit, weeklyTarget);
-        String normalized = validateAndNormalizeReview(category, reviewEnabled, reviewBaseDate, reviewIntervals, startDate);
-        Dare before = get(id);
-        boolean enabled = reviewEnabled && "STUDY".equals(DareCategory.parse(category).name());
-        LocalDate effectiveBase = reviewBaseDate == null ? startDate : reviewBaseDate;
-        boolean reviewConfigChanged = before.isReviewEnabled() != enabled
-                || !java.util.Objects.equals(before.getReviewBaseDate(), enabled ? effectiveBase : null)
-                || !java.util.Objects.equals(before.getReviewIntervals(), enabled ? normalized : "");
-        Dare dare = update(id, title, description, category, minutes, repeatType, repeatDays, startDate, endDate);
-        dare.setGoals(targetValue, targetUnit, weeklyTarget);
-        dare.configureReview(enabled, effectiveBase == null ? dare.getStartDate() : effectiveBase, normalized);
-        if (reviewConfigChanged) reviewRecordRepository.deleteAllByDareId(id);
-        return dareRepository.save(dare);
-    }
-
-    private String validateAndNormalizeReview(String category, boolean enabled, LocalDate baseDate, String intervals, LocalDate startDate) {
-        if (!enabled || !"STUDY".equals(DareCategory.parse(category).name())) return "";
-        LocalDate base = baseDate == null ? startDate : baseDate;
-        if (base == null) throw new IllegalArgumentException("복습 기준일을 입력해주세요.");
-        if (intervals == null || intervals.isBlank()) throw new IllegalArgumentException("복습 간격을 하나 이상 입력해주세요.");
-        String normalized = intervals.trim().replace('，', ',');
-        java.util.SortedSet<Integer> values = new java.util.TreeSet<>();
-        for (String part : normalized.split("[,\\s]+")) {
-            if (part.isBlank()) continue;
-            int days;
-            try { days = Integer.parseInt(part); }
-            catch (NumberFormatException ex) { throw new IllegalArgumentException("복습 간격은 1, 3, 7처럼 날짜 수(숫자)로 입력해주세요."); }
-            if (days < 1 || days > 3650) throw new IllegalArgumentException("복습 간격은 1일~3650일 사이로 설정해주세요.");
-            values.add(days);
-        }
-        if (values.isEmpty()) throw new IllegalArgumentException("복습 간격을 하나 이상 입력해주세요.");
-        if (values.size() > 12) throw new IllegalArgumentException("복습 일정은 최대 12개까지 만들 수 있습니다.");
-        return values.stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse("");
-    }
-
     public Dare toggle(Long id) {
         Dare dare = get(id);
         if (dare.isActive()) {
@@ -206,13 +147,16 @@ public class DareService {
         return dareRepository.save(dare);
     }
 
+    /** Deletes the challenge with all its records and uploaded photos. */
     @Transactional
     public void delete(Long id) {
         get(id);
-        completionRepository.findAll().stream()
-                .filter(c -> c.getDare().getId().equals(id))
-                .map(Completion::getImagePath)
-                .forEach(images::deleteQuietly);
+        completionRepository
+            .findAll()
+            .stream()
+            .filter(c -> c.getDare().getId().equals(id))
+            .map(Completion::getImagePath)
+            .forEach(images::deleteQuietly);
         focusRepository.deleteAllByDareId(id);
         progressRepository.deleteAllByDareId(id);
         reviewRecordRepository.deleteAllByDareId(id);
@@ -221,18 +165,60 @@ public class DareService {
         dareRepository.deleteById(id);
     }
 
-    private void validate(String title, LocalDate startDate, LocalDate endDate, String repeatType, List<String> repeatDays, String category) {
+    /** Parsed, checked form values. {@code review} is null when no review plan applies. */
+    private record Validated(
+        DareCategory category,
+        RepeatType repeatType,
+        String repeatDays,
+        ReviewIntervals review,
+        LocalDate reviewBase
+    ) {}
+
+    private Validated validate(DareRequest r) {
+        String title = r.getTitle();
         if (title == null || title.isBlank()) throw new IllegalArgumentException("도전 이름을 입력해주세요.");
         if (title.trim().length() > 80) throw new IllegalArgumentException("도전 이름은 80자 이하로 입력해주세요.");
-        if (startDate == null) throw new IllegalArgumentException("시작일을 입력해주세요.");
-        DareCategory.parse(category);
-        RepeatType parsedRepeat = RepeatType.parse(repeatType);
-        if (endDate != null && startDate != null && endDate.isBefore(startDate)) throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
-        if (parsedRepeat == RepeatType.CUSTOM) {
-            if (repeatDays == null || repeatDays.isEmpty()) throw new IllegalArgumentException("반복할 요일을 하나 이상 선택해주세요.");
-            repeatDays.forEach(this::parseDay);
-        } else if (repeatDays != null) {
-            repeatDays.forEach(this::parseDay);
+        if (r.getStartDate() == null) throw new IllegalArgumentException("시작일을 입력해주세요.");
+        if (r.getEndDate() != null && r.getEndDate().isBefore(r.getStartDate())) {
+            throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
         }
+        DareCategory category = DareCategory.parse(r.getCategory());
+        RepeatType repeatType = RepeatType.parse(r.getRepeatType());
+        List<DayOfWeek> days = r.getRepeatDays().stream().map(DareService::parseDay).distinct().toList();
+        if (repeatType == RepeatType.CUSTOM && days.isEmpty()) {
+            throw new IllegalArgumentException("반복할 요일을 하나 이상 선택해주세요.");
+        }
+        validateGoals(r.getTargetValue(), r.getTargetUnit(), r.getWeeklyTarget());
+
+        boolean reviewApplies = r.isReviewEnabled() && category == DareCategory.STUDY;
+        ReviewIntervals review = reviewApplies ? ReviewIntervals.parse(r.getReviewIntervals()) : null;
+        LocalDate reviewBase =
+            reviewApplies && r.getReviewBaseDate() != null ? r.getReviewBaseDate() : r.getStartDate();
+        String repeatDays = days.stream().map(DayOfWeek::name).collect(Collectors.joining(","));
+        return new Validated(category, repeatType, repeatDays, review, reviewBase);
+    }
+
+    private static void validateGoals(int targetValue, String targetUnit, int weeklyTarget) {
+        if (targetValue < 1 || targetValue > 10000) throw new IllegalArgumentException(
+            "목표 수치는 1~10000 사이여야 합니다."
+        );
+        if (!GOAL_UNITS.contains(targetUnit)) throw new IllegalArgumentException("지원되지 않는 목표 단위입니다.");
+        if (weeklyTarget < 0 || weeklyTarget > 7) throw new IllegalArgumentException(
+            "주간 목표는 0~7회로 설정해주세요."
+        );
+    }
+
+    private static DayOfWeek parseDay(String value) {
+        try {
+            return DayOfWeek.valueOf(value.trim().toUpperCase(Locale.ROOT));
+        } catch (RuntimeException ex) {
+            throw new IllegalArgumentException("지원되지 않는 요일 값입니다.");
+        }
+    }
+
+    private static String reviewFingerprint(Dare dare) {
+        return (
+            dare.isReviewEnabled() + "|" + Objects.toString(dare.getReviewBaseDate()) + "|" + dare.getReviewIntervals()
+        );
     }
 }

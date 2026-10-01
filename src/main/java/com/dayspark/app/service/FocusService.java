@@ -4,16 +4,16 @@ import com.dayspark.app.domain.FocusStatus;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.model.FocusSession;
 import com.dayspark.app.repository.FocusSessionRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FocusService {
+
     private final FocusSessionRepository repo;
     private final ProgressService progress;
     private final Clock clock;

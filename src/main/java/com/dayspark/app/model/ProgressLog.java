@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "progress_logs")
 public class ProgressLog {
+
     public static final String SOURCE_MANUAL = "MANUAL";
     public static final String SOURCE_FOCUS = "FOCUS";
 

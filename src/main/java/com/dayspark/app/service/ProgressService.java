@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class ProgressService {
+
     /** Unit whose progress can be earned by focus sessions. */
     public static final String MINUTES_UNIT = "분";
 
@@ -24,7 +25,12 @@ public class ProgressService {
     private final CompletionService completions;
     private final Clock clock;
 
-    public ProgressService(ProgressLogRepository logs, PlanningService planning, CompletionService completions, Clock clock) {
+    public ProgressService(
+        ProgressLogRepository logs,
+        PlanningService planning,
+        CompletionService completions,
+        Clock clock
+    ) {
         this.logs = logs;
         this.planning = planning;
         this.completions = completions;

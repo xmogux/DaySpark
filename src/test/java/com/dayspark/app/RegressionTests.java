@@ -1,11 +1,11 @@
 package com.dayspark.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.service.ReviewService.ReviewItem;
+import com.dayspark.app.service.view.DailyStat;
 import com.dayspark.app.support.DaySparkIntegrationTest;
 import com.dayspark.app.support.IntegrationTestSupport;
 import java.nio.charset.StandardCharsets;
@@ -48,19 +49,27 @@ class RegressionTests extends IntegrationTestSupport {
             completions.save(new Completion(b, day, "", null, day.atTime(9, 0)));
         }
 
-        mvc.perform(post("/challenges/save")
-                        .param("id", b.getId().toString())
-                        .param("title", "B")
-                        .param("category", "LIFE")
-                        .param("repeatType", "WEEKENDS")
-                        .param("startDate", monday.toString()))
-                .andExpect(status().is3xxRedirection());
+        mvc.perform(
+            post("/challenges/save")
+                .param("id", b.getId().toString())
+                .param("title", "B")
+                .param("category", "LIFE")
+                .param("repeatType", "WEEKENDS")
+                .param("startDate", monday.toString())
+        ).andExpect(status().is3xxRedirection());
 
-        mvc.perform(get("/stats"))
-                .andExpect(status().isOk())
-                .andExpect(model().attribute("weekRate", 100L))
-                .andExpect(model().attribute("monthRate", 100L))
-                .andExpect(model().attribute("weekDone", 6L));
+        MvcResult stats = mvc
+            .perform(get("/stats"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("weekRate", 100L))
+            .andExpect(model().attribute("monthRate", 100L))
+            .andExpect(model().attribute("weekDone", 6L))
+            .andReturn();
+        // Rates are also capped at 100 for display, so check the raw counts: Mon-Wed each plan 2 of 2.
+        @SuppressWarnings("unchecked")
+        List<DailyStat> bars = (List<DailyStat>) stats.getModelAndView().getModel().get("weekBars");
+        assertThat(bars.subList(0, 3)).extracting(DailyStat::planned).containsExactly(2L, 2L, 2L);
+        assertThat(bars.subList(0, 3)).extracting(DailyStat::completed).containsExactly(2L, 2L, 2L);
     }
 
     /**
@@ -72,13 +81,20 @@ class RegressionTests extends IntegrationTestSupport {
     void resetIsRejectedOnACompletedDate() throws Exception {
         Dare weekendWalk = dares.save(new Dare("주말 산책", "", "MOVE", 20, "WEEKENDS", "", TODAY.minusDays(10), null));
         String id = weekendWalk.getId().toString();
-        mvc.perform(post("/challenges/" + id + "/schedule").param("date", TODAY.toString()).param("mode", "ADD"))
-                .andExpect(flash().attributeExists("success"));
+        mvc.perform(
+            post("/challenges/" + id + "/schedule")
+                .param("date", TODAY.toString())
+                .param("mode", "ADD")
+        ).andExpect(flash().attributeExists("success"));
         mvc.perform(post("/complete").param("dareId", id)).andExpect(flash().attributeExists("success"));
 
-        mvc.perform(post("/challenges/" + id + "/schedule").param("date", TODAY.toString()).param("mode", "RESET"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(flash().attributeExists("error"));
+        mvc.perform(
+            post("/challenges/" + id + "/schedule")
+                .param("date", TODAY.toString())
+                .param("mode", "RESET")
+        )
+            .andExpect(status().is3xxRedirection())
+            .andExpect(flash().attributeExists("error"));
 
         assertThat(exceptions.findByDareIdAndDay(weekendWalk.getId(), TODAY)).isPresent();
         mvc.perform(get("/")).andExpect(model().attribute("done", 1)).andExpect(model().attribute("total", 1));
@@ -90,15 +106,16 @@ class RegressionTests extends IntegrationTestSupport {
      */
     @Test
     void overdueReviewsStayOnTheHomeScreenUntilDone() throws Exception {
-        mvc.perform(post("/challenges/save")
-                        .param("title", "운영체제 3장")
-                        .param("category", "STUDY")
-                        .param("repeatType", "DAILY")
-                        .param("startDate", TODAY.minusDays(5).toString())
-                        .param("reviewEnabled", "true")
-                        .param("reviewBaseDate", TODAY.minusDays(5).toString())
-                        .param("reviewIntervals", "1,3,7"))
-                .andExpect(flash().attributeExists("success"));
+        mvc.perform(
+            post("/challenges/save")
+                .param("title", "운영체제 3장")
+                .param("category", "STUDY")
+                .param("repeatType", "DAILY")
+                .param("startDate", TODAY.minusDays(5).toString())
+                .param("reviewEnabled", "true")
+                .param("reviewBaseDate", TODAY.minusDays(5).toString())
+                .param("reviewIntervals", "1,3,7")
+        ).andExpect(flash().attributeExists("success"));
 
         MvcResult home = mvc.perform(get("/")).andExpect(status().isOk()).andReturn();
         @SuppressWarnings("unchecked")
@@ -116,17 +133,23 @@ class RegressionTests extends IntegrationTestSupport {
     void todaysCompletionCanBeUndoneAndItsPhotoIsDeleted() throws Exception {
         Dare water = dailyDare("물 6잔", "HEALTH");
         String id = water.getId().toString();
-        MockMultipartFile photo =
-                new MockMultipartFile("image", "cup.png", "image/png", "png".getBytes(StandardCharsets.UTF_8));
-        mvc.perform(multipart("/complete").file(photo).param("dareId", id)).andExpect(flash().attributeExists("success"));
+        MockMultipartFile photo = new MockMultipartFile(
+            "image",
+            "cup.png",
+            "image/png",
+            "png".getBytes(StandardCharsets.UTF_8)
+        );
+        mvc.perform(multipart("/complete").file(photo).param("dareId", id)).andExpect(
+            flash().attributeExists("success")
+        );
         Completion done = completions.findByDareIdAndChallengeDate(water.getId(), TODAY).orElseThrow();
         Path stored = Path.of(uploadDir).resolve(done.getImagePath().substring("/uploads/".length()));
         assertThat(stored).exists();
 
         mvc.perform(post("/complete/undo").param("dareId", id))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"))
-                .andExpect(flash().attributeExists("success"));
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/"))
+            .andExpect(flash().attributeExists("success"));
 
         assertThat(completions.findByDareIdAndChallengeDate(water.getId(), TODAY)).isEmpty();
         assertThat(stored).doesNotExist();
@@ -140,8 +163,8 @@ class RegressionTests extends IntegrationTestSupport {
     @Test
     void challengeFormOffersExactlyTheSupportedCategories() throws Exception {
         mvc.perform(get("/challenges/new"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString(">WORK<")))
-                .andExpect(content().string(not(containsString("MIND"))));
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString(">WORK<")))
+            .andExpect(content().string(not(containsString("MIND"))));
     }
 }

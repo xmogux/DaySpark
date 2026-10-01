@@ -1,7 +1,99 @@
-<!doctype html><html lang="ko" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>집중 타이머 — DaySpark</title><link rel="stylesheet" href="/css/app.css?v=55"></head>
-<body><div class="page-shell"><header class="topbar"><a class="brand" href="/"><span class="brand-mark">✦</span>DaySpark</a><nav><a class="nav-link" href="/">오늘</a><a class="nav-link" href="/challenges">도전</a><a class="nav-link" href="/calendar">달력</a><a class="nav-link" href="/stats">통계</a><a class="nav-link active" href="/focus">집중 타이머</a><a class="nav-link" href="/history">기록</a></nav></header>
-<main class="focus-layout"><section class="focus-intro"><span class="eyebrow">DEEP WORK · POMODORO</span><h1>집중이 쌓이는<br><span>시간을 보세요.</span></h1><p>집중 시간과 휴식 시간, 반복 횟수를 정하세요. 완료한 집중 세션만 기록하며 중단한 시간은 포함하지 않습니다.</p><div class="focus-summary"><div><span>오늘 집중</span><strong id="todayMinutes">—</strong></div><div><span>이번 주 집중</span><strong id="weekMinutes">—</strong></div><div><span>이번 주 완료</span><strong id="weekCount">—</strong></div></div></section>
-<section class="focus-console"><div class="focus-console-top"><span class="eyebrow" id="focusPhase">FOCUS MODE</span><span class="focus-round" id="roundLabel">1 / 4회차</span></div><div class="timer-ring" id="timerVisual"><svg viewBox="0 0 300 300" role="img" aria-label="바깥 링은 전체 진행률, 안쪽 링은 매초 움직이는 60초 진행률"><circle class="ring-back" cx="150" cy="150" r="120"/><circle class="ring-front" id="timerArc" cx="150" cy="150" r="120"/><circle class="ring-second-back" cx="150" cy="150" r="98"/><circle class="ring-second" id="timerSecondsArc" cx="150" cy="150" r="98"/></svg><div class="timer-numbers"><span class="timer-center-kicker" id="timerMode">READY TO FOCUS</span><strong id="timerReadout">25:00</strong><span id="timerSubtext">시작할 준비가 됐어요</span><b class="timer-center-percent" id="timerPercent">0%</b></div></div>
-<div class="visual-timer-meters" aria-label="시간 경과 현황"><div class="visual-meter"><div class="visual-meter-label"><span><span class="meter-dot total-dot"></span>전체 진행</span><b id="elapsedLabel">00:00 / 25:00</b></div><div class="visual-meter-track"><span id="totalMeterFill"></span></div></div><div class="visual-meter"><div class="visual-meter-label"><span><span class="meter-dot second-dot"></span><span id="secondsMeterLabel">매초 움직이는 60초 게이지</span></span><b id="secondsLabel">0 / 60초</b></div><div class="visual-meter-track"><span id="secondsMeterFill"></span></div></div></div>
-<div class="timer-controls"><button type="button" id="resetTimer" class="ghost-btn">중단</button><button type="button" id="pauseTimer" class="ghost-btn" disabled>일시정지</button><button type="button" id="startTimer" class="secondary-btn">시작하기 ▶</button></div><button type="button" id="previewTimer" class="timer-preview-btn">⚡ 15초 움직임 테스트 <span>실제 기록에는 반영 안 됨</span></button><p id="timerStatus" class="timer-status" aria-live="polite">집중할 목표와 시간을 선택하세요.</p>
-<div class="timer-config"><label>연결할 도전<select id="focusDare" th:attr="data-selected=${selectedDareId}"><option value="">도전 선택</option><option th:each="d:${dares}" th:value="${d.id}" th:text="${d.title}" th:selected="${selectedDareId != null && selectedDareId.equals(d.id)}">독서</option></select></label><label>집중 시간(분)<input type="number" id="focusMinutes" min="1" max="120" value="25"></label><label>휴식 시간(분)<input type="number" id="breakMinutes" min="0" max="30" value="5"></label><label>반복 횟수<input type="number" id="repeatCount" min="1" max="10" value="4"></label></div><div class="focus-note">* 여러 탭에서 동시에 시작할 수 없습니다. 페이지를 새로고침해도 집중 세션은 서버에 남습니다. 휴식·반복 설정은 현재 브라우저에 저장됩니다.</div></section></main><script src="/js/focus.js?v=4"></script></div></body></html>
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>집중 타이머 — DaySpark</title>
+    <link rel="stylesheet" href="/css/app.css?v=56" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header th:replace="~{fragments/layout :: topbar('focus')}"></header>
+      <main class="focus-layout">
+        <section class="focus-intro">
+          <span class="eyebrow">DEEP WORK · POMODORO</span>
+          <h1>집중이 쌓이는<br /><span>시간을 보세요.</span></h1>
+          <p>
+            집중 시간과 휴식 시간, 반복 횟수를 정하세요. 완료한 집중 세션만 기록하며 중단한 시간은 포함하지 않습니다.
+          </p>
+          <div class="focus-summary">
+            <div><span>오늘 집중</span><strong id="todayMinutes">—</strong></div>
+            <div><span>이번 주 집중</span><strong id="weekMinutes">—</strong></div>
+            <div><span>이번 주 완료</span><strong id="weekCount">—</strong></div>
+          </div>
+        </section>
+        <section class="focus-console">
+          <div class="focus-console-top">
+            <span class="eyebrow" id="focusPhase">FOCUS MODE</span
+            ><span class="focus-round" id="roundLabel">1 / 4회차</span>
+          </div>
+          <div class="timer-ring" id="timerVisual">
+            <svg
+              viewBox="0 0 300 300"
+              role="img"
+              aria-label="바깥 링은 전체 진행률, 안쪽 링은 매초 움직이는 60초 진행률"
+            >
+              <circle class="ring-back" cx="150" cy="150" r="120" />
+              <circle class="ring-front" id="timerArc" cx="150" cy="150" r="120" />
+              <circle class="ring-second-back" cx="150" cy="150" r="98" />
+              <circle class="ring-second" id="timerSecondsArc" cx="150" cy="150" r="98" />
+            </svg>
+            <div class="timer-numbers">
+              <span class="timer-center-kicker" id="timerMode">READY TO FOCUS</span
+              ><strong id="timerReadout">25:00</strong><span id="timerSubtext">시작할 준비가 됐어요</span
+              ><b class="timer-center-percent" id="timerPercent">0%</b>
+            </div>
+          </div>
+          <div class="visual-timer-meters" aria-label="시간 경과 현황">
+            <div class="visual-meter">
+              <div class="visual-meter-label">
+                <span><span class="meter-dot total-dot"></span>전체 진행</span><b id="elapsedLabel">00:00 / 25:00</b>
+              </div>
+              <div class="visual-meter-track"><span id="totalMeterFill"></span></div>
+            </div>
+            <div class="visual-meter">
+              <div class="visual-meter-label">
+                <span
+                  ><span class="meter-dot second-dot"></span
+                  ><span id="secondsMeterLabel">매초 움직이는 60초 게이지</span></span
+                ><b id="secondsLabel">0 / 60초</b>
+              </div>
+              <div class="visual-meter-track"><span id="secondsMeterFill"></span></div>
+            </div>
+          </div>
+          <div class="timer-controls">
+            <button type="button" id="resetTimer" class="ghost-btn">중단</button
+            ><button type="button" id="pauseTimer" class="ghost-btn" disabled>일시정지</button
+            ><button type="button" id="startTimer" class="secondary-btn">시작하기 ▶</button>
+          </div>
+          <button type="button" id="previewTimer" class="timer-preview-btn">
+            ⚡ 15초 움직임 테스트 <span>실제 기록에는 반영 안 됨</span>
+          </button>
+          <p id="timerStatus" class="timer-status" aria-live="polite">집중할 목표와 시간을 선택하세요.</p>
+          <div class="timer-config">
+            <label
+              >연결할 도전<select id="focusDare" th:attr="data-selected=${selectedDareId}">
+                <option value="">도전 선택</option>
+                <option
+                  th:each="d:${dares}"
+                  th:value="${d.id}"
+                  th:text="${d.title}"
+                  th:selected="${selectedDareId != null && selectedDareId.equals(d.id)}"
+                >
+                  독서
+                </option>
+              </select></label
+            ><label>집중 시간(분)<input type="number" id="focusMinutes" min="1" max="120" value="25" /></label
+            ><label>휴식 시간(분)<input type="number" id="breakMinutes" min="0" max="30" value="5" /></label
+            ><label>반복 횟수<input type="number" id="repeatCount" min="1" max="10" value="4" /></label>
+          </div>
+          <div class="focus-note">
+            * 여러 탭에서 동시에 시작할 수 없습니다. 페이지를 새로고침해도 집중 세션은 서버에 남습니다. 휴식·반복 설정은
+            현재 브라우저에 저장됩니다.
+          </div>
+        </section>
+      </main>
+      <script src="/js/focus.js?v=4"></script>
+    </div>
+  </body>
+</html>

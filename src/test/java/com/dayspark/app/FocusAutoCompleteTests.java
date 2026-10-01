@@ -25,27 +25,35 @@ import org.junit.jupiter.api.Test;
 class FocusAutoCompleteTests extends IntegrationTestSupport {
 
     private Dare minutesGoal(String repeatType, String repeatDays, int targetMinutes) throws Exception {
-        Dare dare = dares.save(new Dare("집중 공부", "", "STUDY", 25, repeatType, repeatDays, TODAY.minusDays(7), null));
-        mvc.perform(post("/challenges/" + dare.getId() + "/goals")
-                        .param("targetValue", String.valueOf(targetMinutes))
-                        .param("targetUnit", "분"))
-                .andExpect(flash().attributeExists("success"));
+        Dare dare = dares.save(
+            new Dare("집중 공부", "", "STUDY", 25, repeatType, repeatDays, TODAY.minusDays(7), null)
+        );
+        mvc.perform(
+            post("/challenges/" + dare.getId() + "/goals")
+                .param("targetValue", String.valueOf(targetMinutes))
+                .param("targetUnit", "분")
+        ).andExpect(flash().attributeExists("success"));
         return dare;
     }
 
     private Long focus(Dare dare, int minutes) throws Exception {
-        mvc.perform(post("/api/focus/start").param("dareId", dare.getId().toString()).param("minutes", String.valueOf(minutes)))
-                .andExpect(status().isOk());
+        mvc.perform(
+            post("/api/focus/start").param("dareId", dare.getId().toString()).param("minutes", String.valueOf(minutes))
+        ).andExpect(status().isOk());
         Long id = focusSessions.findByStatusIn(java.util.List.of("RUNNING")).get(0).getId();
         clock.advance(Duration.ofMinutes(minutes));
         mvc.perform(post("/api/focus/" + id + "/finish"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("COMPLETED"));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("COMPLETED"));
         return id;
     }
 
     private int progressOn(Dare dare, LocalDate day) {
-        return progressLogs.findByDareIdAndDay(dare.getId(), day).stream().mapToInt(p -> p.getAmount()).sum();
+        return progressLogs
+            .findByDareIdAndDay(dare.getId(), day)
+            .stream()
+            .mapToInt(p -> p.getAmount())
+            .sum();
     }
 
     @Test
@@ -58,14 +66,18 @@ class FocusAutoCompleteTests extends IntegrationTestSupport {
         assertThat(completions.findByDareIdAndChallengeDate(dare.getId(), TODAY)).isPresent();
         // finish is idempotent: a repeated call from the browser does not fail.
         mvc.perform(post("/api/focus/" + session + "/finish"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("COMPLETED"));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("COMPLETED"));
     }
 
     @Test
     void manualProgressReachingTheTargetCompletesTheChallenge() throws Exception {
         Dare reading = dares.save(new Dare("책 읽기", "", "STUDY", 20, "DAILY", "", TODAY.minusDays(1), null));
-        mvc.perform(post("/challenges/" + reading.getId() + "/goals").param("targetValue", "20").param("targetUnit", "페이지"));
+        mvc.perform(
+            post("/challenges/" + reading.getId() + "/goals")
+                .param("targetValue", "20")
+                .param("targetUnit", "페이지")
+        );
 
         mvc.perform(post("/challenges/" + reading.getId() + "/progress").param("amount", "15"));
         assertThat(completions.findByDareIdAndChallengeDate(reading.getId(), TODAY)).isEmpty();
@@ -78,8 +90,9 @@ class FocusAutoCompleteTests extends IntegrationTestSupport {
     void autoCompletionHappensOnlyWhenTheTargetIsFirstReached() throws Exception {
         Dare dare = minutesGoal("DAILY", "", 25);
         focus(dare, 25);
-        mvc.perform(post("/complete/undo").param("dareId", dare.getId().toString()))
-                .andExpect(flash().attributeExists("success"));
+        mvc.perform(post("/complete/undo").param("dareId", dare.getId().toString())).andExpect(
+            flash().attributeExists("success")
+        );
 
         focus(dare, 25); // 50/25: the target was already reached earlier today
 

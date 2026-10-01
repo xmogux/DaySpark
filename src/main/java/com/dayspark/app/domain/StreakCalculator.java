@@ -18,12 +18,17 @@ import java.util.function.Predicate;
  * </ol>
  */
 public final class StreakCalculator {
+
     public static final int MAX_LOOKBACK_DAYS = 366;
 
     private StreakCalculator() {}
 
     public static int count(
-            LocalDate today, LocalDate earliest, Predicate<LocalDate> planned, Predicate<LocalDate> achieved) {
+        LocalDate today,
+        LocalDate earliest,
+        Predicate<LocalDate> planned,
+        Predicate<LocalDate> achieved
+    ) {
         if (earliest == null || today.isBefore(earliest)) return 0;
         LocalDate day = achieved.test(today) ? today : today.minusDays(1);
         int streak = 0;

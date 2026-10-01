@@ -17,16 +17,32 @@ import org.springframework.test.web.servlet.MockMvc;
  * before every test. Subclasses must be annotated with {@link DaySparkIntegrationTest}.
  */
 public abstract class IntegrationTestSupport {
+
     protected static final LocalDate TODAY = TestDates.TODAY;
 
-    @Autowired protected MockMvc mvc;
-    @Autowired protected MutableClock clock;
-    @Autowired protected DareRepository dares;
-    @Autowired protected CompletionRepository completions;
-    @Autowired protected ProgressLogRepository progressLogs;
-    @Autowired protected ScheduleExceptionRepository exceptions;
-    @Autowired protected FocusSessionRepository focusSessions;
-    @Autowired protected ReviewRecordRepository reviewRecords;
+    @Autowired
+    protected MockMvc mvc;
+
+    @Autowired
+    protected MutableClock clock;
+
+    @Autowired
+    protected DareRepository dares;
+
+    @Autowired
+    protected CompletionRepository completions;
+
+    @Autowired
+    protected ProgressLogRepository progressLogs;
+
+    @Autowired
+    protected ScheduleExceptionRepository exceptions;
+
+    @Autowired
+    protected FocusSessionRepository focusSessions;
+
+    @Autowired
+    protected ReviewRecordRepository reviewRecords;
 
     @BeforeEach
     void resetState() {

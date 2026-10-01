@@ -5,9 +5,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "completions", uniqueConstraints = @UniqueConstraint(columnNames = {"dare_id", "challenge_date"}))
+@Table(name = "completions", uniqueConstraints = @UniqueConstraint(columnNames = { "dare_id", "challenge_date" }))
 public class Completion {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
@@ -36,10 +38,27 @@ public class Completion {
         this.completedAt = completedAt;
     }
 
-    public Long getId() { return id; }
-    public Dare getDare() { return dare; }
-    public LocalDate getChallengeDate() { return challengeDate; }
-    public String getNote() { return note; }
-    public String getImagePath() { return imagePath; }
-    public LocalDateTime getCompletedAt() { return completedAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public Dare getDare() {
+        return dare;
+    }
+
+    public LocalDate getChallengeDate() {
+        return challengeDate;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
 }

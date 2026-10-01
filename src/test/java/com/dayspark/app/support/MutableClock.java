@@ -12,6 +12,7 @@ import java.time.ZoneId;
  * move time forward with {@link #advance(Duration)} instead of sleeping.
  */
 public final class MutableClock extends Clock {
+
     private final ZoneId zone;
     private volatile Instant instant;
 
