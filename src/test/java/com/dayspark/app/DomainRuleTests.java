@@ -104,4 +104,29 @@ class DomainRuleTests extends IntegrationTestSupport {
 
         assertThat(completions.findByDareIdAndChallengeDate(reading.getId(), TODAY)).isPresent();
     }
+
+    /**
+     * Pause rule: pausing removes today and later days from the plan, earlier days keep their plan,
+     * so past rates do not change. A completion made before pausing still counts for today.
+     */
+    @Test
+    void pausingRemovesTodayAndLaterButKeepsThePast() throws Exception {
+        Dare walk = dailyDare("산책", "MOVE");
+        Dare water = dailyDare("물", "HEALTH");
+        completions.save(new Completion(water, TODAY, "", null, TODAY.atTime(8, 0)));
+
+        mvc.perform(post("/challenges/" + walk.getId() + "/toggle")).andExpect(flash().attributeExists("success"));
+        mvc.perform(post("/challenges/" + water.getId() + "/toggle")).andExpect(flash().attributeExists("success"));
+
+        // today: walk is gone, water stays because it was completed before the pause
+        mvc.perform(get("/")).andExpect(model().attribute("total", 1)).andExpect(model().attribute("done", 1));
+        // yesterday: both challenges still planned
+        MvcResult yesterday = mvc
+            .perform(get("/calendar/day").param("date", TODAY.minusDays(1).toString()))
+            .andExpect(status().isOk())
+            .andReturn();
+        @SuppressWarnings("unchecked")
+        List<Dare> planned = (List<Dare>) yesterday.getModelAndView().getModel().get("scheduled");
+        assertThat(planned).extracting(Dare::getId).containsExactlyInAnyOrder(walk.getId(), water.getId());
+    }
 }

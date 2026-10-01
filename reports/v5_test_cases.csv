@@ -1,7 +1,0 @@
-TC_ID,관련_R,테스트 유형,입력/행동,기대 결과,자동 테스트 파일,상태
-V5-T01,R-V5-01,단위,23:50 Asia/Seoul 시작 + 25분 계획,완료 날짜가 다음 날로 계산됨,FocusSessionUnitTests,테스트 코드 추가됨-로컬 실행 필요
-V5-T02,R-V5-03,통합,repeatType=CUSTOM + repeatDays=FOO POST,저장 거부 및 오류 flash 표시,DaySparkApplicationTests,테스트 코드 추가됨-로컬 실행 필요
-V5-T03,R-V5-06,통합,/calendar?month=13 접속,400 오류 화면 표시,DaySparkApplicationTests,테스트 코드 추가됨-로컬 실행 필요
-V5-T04,R-V5-04,통합,도전을 쉬기 처리한 뒤 과거 달력 조회,과거 예정 수가 쉬기 전 기준으로 유지됨,추가 권장,미실행
-V5-T05,R-V5-05,통합,평일 목표만 등록 후 주말 조회,주말 때문에 Streak가 끊기지 않음,추가 권장,미실행
-V5-T06,R-V5-07,통합,사진 업로드 완료 후 도전 삭제,uploads 파일이 삭제됨,추가 권장,미실행
