@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -128,5 +131,17 @@ class RegressionTests extends IntegrationTestSupport {
         assertThat(completions.findByDareIdAndChallengeDate(water.getId(), TODAY)).isEmpty();
         assertThat(stored).doesNotExist();
         mvc.perform(get("/")).andExpect(model().attribute("done", 0)).andExpect(model().attribute("total", 1));
+    }
+
+    /**
+     * Bug found while refactoring: the category select offered MIND, which DareCategory does not
+     * know (saving failed with "지원되지 않는 카테고리입니다."), and did not offer WORK, which it does.
+     */
+    @Test
+    void challengeFormOffersExactlyTheSupportedCategories() throws Exception {
+        mvc.perform(get("/challenges/new"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(">WORK<")))
+                .andExpect(content().string(not(containsString("MIND"))));
     }
 }
