@@ -1,0 +1,107 @@
+# DaySpark 테스트
+
+## 1. 실행 방법
+
+```bash
+./mvnw test      # 단위 + 통합 테스트
+./mvnw verify    # 위 + JaCoCo 커버리지 리포트
+```
+
+| 결과물 | 위치 |
+|---|---|
+| 테스트별 결과 | `target/surefire-reports/` (`*.txt`, `TEST-*.xml`) |
+| 커버리지 리포트 | `target/site/jacoco/index.html` (패키지 → 클래스 → 소스 줄 단위) |
+| CI 실행 기록 | GitHub 저장소 → **Actions** 탭 (JDK 17 job 요약에 패키지별 커버리지 표) |
+
+## 2. 테스트 구성 — 54개
+
+| 종류 | 클래스 | 개수 | 확인하는 것 |
+|---|---|---:|---|
+| 단위 | `StreakCalculatorTest` | 6 | Streak 규칙 (건너뛰기, 진행 중인 오늘, 끊김, 범위) |
+| 단위 | `ReviewIntervalsTest` | 6 | 복습 간격 입력 정규화·검증 메시지 |
+| 단위 | `DareScheduleTest` | 5 | 반복 규칙, 기간, 쉬기 경계, 요일 라벨, 복습 저장 |
+| 단위 | `FocusSessionUnitTests` | 3 | 타이머 일시정지·재개·완료 조건, 자정 넘김 |
+| 통합 | `DaySparkApplicationTests` | 10 | 주요 페이지, 도전 생성·수정 폼, 완료+사진, 입력 오류 |
+| 통합 | `EnhancementApiTests` | 5 | 수치 목표, 일정 예외, 집중 API, 복습 플랜 |
+| 통합 | `RegressionTests` | 5 | v5.5 리뷰에서 찾은 버그 5건 (아래 3절) |
+| 통합 | `DomainRuleTests` | 5 | 복습·Streak·수치 목표·쉬기 규칙 (`domain-rules.md`) |
+| 통합 | `FocusAutoCompleteTests` | 5 | 포모도로 → 진행량 → 자동 완료, 계획 없는 날, 자정 |
+| 통합 | `ErrorHandlingTests` | 4 | 404 / 405 / 400 메시지 / JSON API 오류 |
+
+- **단위 테스트**는 Spring 없이 순수 Java 객체만 검사합니다(빠름).
+- **통합 테스트**는 Spring Boot 전체 + MockMvc + H2 메모리 DB로 HTTP 요청부터 DB까지 검사합니다.
+- 요구사항 ↔ 테스트 매핑: [requirements.md](requirements.md)
+
+### 테스트 인프라
+
+| 구성 | 역할 |
+|---|---|
+| `support/TestDates` | 모든 테스트의 "오늘" = **2026-10-07(수) 12:00 Asia/Seoul** |
+| `support/MutableClock` + `TestClockConfig` | 운영 `Clock`을 대체하는 `@Primary` 시계. 집중 테스트는 `clock.advance(25분)`으로 시간을 넘김(대기 없음) |
+| `support/@DaySparkIntegrationTest` | `@SpringBootTest` + `@AutoConfigureMockMvc` + 테스트 시계를 한 번에 |
+| `support/IntegrationTestSupport` | 매 테스트 전 DB 비우기 + 시계 초기화 |
+| `src/test/resources/application.properties` | H2 메모리 DB, 예시 데이터 비활성화, 업로드는 `target/test-uploads` |
+
+실행하는 날짜·요일·시각에 따라 결과가 달라지던 문제(`LocalDate.now()` 사용)를 없앴습니다.
+
+## 3. 버그 → 회귀 테스트 (테스트 먼저 커밋)
+
+각 버그는 **실패하는 테스트 커밋 → 수정 커밋** 순서로 남겼습니다. `git log --graph`에서 브랜치·병합으로 보입니다.
+
+| 버그 | 테스트 커밋 | 수정 커밋 | 테스트 |
+|---|---|---|---|
+| 반복 요일을 바꾸면 주간 달성률 200% | `1a6dc71` | `68f2eaf` | `ratesStayAtOrBelow100PercentAfterRepeatRuleChange` |
+| ADD → 완료 → RESET 하면 완료가 계획 없는 날에 남음 | `a967ce4` | `1d5ceca` | `resetIsRejectedOnACompletedDate` |
+| 지난 복습이 오늘 화면에서 사라짐 | `00fe54b` | `8169d77` | `overdueReviewsStayOnTheHomeScreenUntilDone` |
+| 완료를 취소할 수 없음 | `50383f5` | `08c499c` | `todaysCompletionCanBeUndoneAndItsPhotoIsDeleted` |
+| 폼이 서버가 거부하는 카테고리(MIND)를 보여줌 | `28a7c11` | `74977dd` | `challengeFormOffersExactlyTheSupportedCategories` |
+| 포모도로·진행량·완료가 따로 놂 | `d9f697e` | `ba3fc40` | `FocusAutoCompleteTests` (5개) |
+| 404·405가 500으로, API가 HTML로 응답 | `bc09392` | `c0711eb` | `ErrorHandlingTests` (4개) |
+
+기존 테스트 자체의 문제도 고쳤습니다.
+
+| 문제 | 커밋 |
+|---|---|
+| 달력 테스트가 화면에 없는 문자열 `달력 UI v5.4`를 기대(항상 실패) | `c5741f4` |
+| SKIP 테스트의 `not(hasItem(d))`가 엔티티 인스턴스 비교라 **항상 통과** | `0cafdff` |
+
+## 4. 실행 결과
+
+### 4.1 로컬 / CI 결과 — 처음 실행한 뒤 이 표를 채우세요
+
+| 날짜 | 환경 | 명령 | Tests run | Failures | Errors | 서비스 계층 Line 커버리지 |
+|---|---|---|---:|---:|---:|---:|
+| (기입) | WSL Ubuntu, JDK __ | `./mvnw verify` | | | | |
+| (기입) | GitHub Actions JDK 17 | `./mvnw -B verify` | | | | |
+| (기입) | GitHub Actions JDK 25 | `./mvnw -B verify` | | | | |
+
+`target/surefire-reports/`의 요약 줄(`Tests run: 54, Failures: 0, Errors: 0, Skipped: 0`)과
+`target/site/jacoco/index.html`의 `com.dayspark.app.service` 행을 그대로 옮겨 적고, 화면을 캡처해 보고서에 넣습니다.
+**실행하지 않은 결과는 적지 않습니다.**
+
+### 4.2 작성 환경에서 한 검증 (Maven 없이)
+
+이번 정리 작업을 한 환경은 Maven Central 접속이 차단되어 Spring Boot 의존성을 받을 수 없었습니다.
+그래서 `./mvnw verify`는 **아직 한 번도 실행되지 않았고**, 대신 아래 검증을 했습니다.
+
+| 검증 | 방법 | 결과 |
+|---|---|---|
+| 컴파일 | main 47개 + test 15개 파일을 Spring/JPA API 스텁과 함께 `javac --release 17` | 성공 |
+| 단위 테스트 | 위 4개 단위 테스트 클래스를 실제 JUnit 5.10 + AssertJ로 실행 | **20 / 20 통과** |
+| 버그 재현·수정 확인 | 실제 서비스·컨트롤러 코드를 메모리 저장소로 연결해 시나리오 실행 | 수정 전 실패 → 수정 후 통과 (기대값 33개 전부 통과) |
+| 리팩터링 동일성 | 같은 데이터(도전 9개, 약 70일)를 리팩터링 전·후 코드에 넣고 30개 화면의 모델 값 비교 | 동일 (사용하지 않던 속성 2개 제거만 차이) |
+| 브라우저 동작 | headless Chrome에서 `focus.js`, `app.js`를 가짜 서버 응답으로 실행 | finish 실패 시 6초간 요청 **1,067회 → 2회**, 정상 타이머 흐름·복습 미리보기 수정 전후 동일 |
+| 템플릿 | 모든 템플릿 태그 균형, `th:replace` 대상 존재, 포맷 전후 `th:*` 속성 동일 | 이상 없음 |
+| 설계 문서 | `architecture.md`의 Mermaid 다이어그램 6개 렌더링 | 전부 렌더링 |
+
+**이 검증으로 확인하지 못한 것:** Spring 컨텍스트 구성, JPA 매핑·쿼리 메서드, Thymeleaf 렌더링, 통합 테스트 34개.
+이 부분은 `./mvnw verify`(또는 CI)를 처음 돌릴 때 확인됩니다. 실패하면 `target/surefire-reports/`의 해당 `.txt`를 보고 고치세요.
+
+## 5. 수동 확인 (자동화하지 않은 것)
+
+| 항목 | 방법 |
+|---|---|
+| Windows 실행기 | Windows 10/11에서 `RUN_DAYSPARK.bat` 실행 → 기본 브라우저가 열리는지, 8080 사용 중이면 안내하는지 |
+| 화면 배치 | PC·모바일 폭에서 오늘·달력·통계·도전 상세 화면 |
+| 사진 8MB 초과 | 8MB 넘는 사진 업로드 시 오류 화면 문구 |
+| 도전 삭제 | 사진이 있는 도전을 삭제한 뒤 `uploads/`에서 파일이 지워졌는지 |
