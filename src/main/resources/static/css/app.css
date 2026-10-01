@@ -221,3 +221,5 @@
 /* v5.6: overdue reviews stay on the home screen */
 .review-home-card .review-overdue{color:#a2643d;font-weight:900}
 .section-note{margin:4px 0 0;font-size:.72rem;color:#808a7b}
+.undo-form{display:flex;align-items:center;gap:8px;margin:0}
+.undo-form .compact{padding:6px 10px;font-size:.72rem}
