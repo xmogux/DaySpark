@@ -28,12 +28,12 @@ public class Completion {
 
     protected Completion() {}
 
-    public Completion(Dare dare, LocalDate challengeDate, String note, String imagePath) {
+    public Completion(Dare dare, LocalDate challengeDate, String note, String imagePath, LocalDateTime completedAt) {
         this.dare = dare;
         this.challengeDate = challengeDate;
         this.note = note;
         this.imagePath = imagePath;
-        this.completedAt = LocalDateTime.now();
+        this.completedAt = completedAt;
     }
 
     public Long getId() { return id; }

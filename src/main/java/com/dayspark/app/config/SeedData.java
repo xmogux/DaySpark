@@ -3,19 +3,23 @@ package com.dayspark.app.config;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.repository.DareRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
+/** Inserts four example challenges into an empty database. Disabled in tests (app.seed-demo-data=false). */
 @Configuration
+@ConditionalOnProperty(name = "app.seed-demo-data", havingValue = "true", matchIfMissing = true)
 public class SeedData {
     @Bean
-    CommandLineRunner seedDares(DareRepository repository) {
+    CommandLineRunner seedDares(DareRepository repository, Clock clock) {
         return args -> {
             if (repository.count() > 0) return;
-            LocalDate today = LocalDate.now();
+            LocalDate today = LocalDate.now(clock);
             Dare water = new Dare("물 6잔 마시기", "하루 동안 천천히 물 6잔을 채워보세요.", "HEALTH", 5, "DAILY", "", today.minusDays(30), null);
             water.setGoals(6, "잔", 6);
             Dare reading = new Dare("책 5페이지 읽기", "부담 없이 5페이지만 읽고 핵심 한 줄을 남겨보세요.", "STUDY", 15, "WEEKDAYS", "", today.minusDays(30), null);

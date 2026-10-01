@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -62,7 +63,7 @@ public class CompletionService {
         String imagePath = saveImage(image);
         String cleanNote = note == null ? "" : note.trim();
         if (cleanNote.length() > 300) cleanNote = cleanNote.substring(0, 300);
-        return completionRepository.save(new Completion(dare, date, cleanNote, imagePath));
+        return completionRepository.save(new Completion(dare, date, cleanNote, imagePath, LocalDateTime.now(clock)));
     }
 
     private String saveImage(MultipartFile image) throws IOException {

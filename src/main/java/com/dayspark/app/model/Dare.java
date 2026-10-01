@@ -36,7 +36,7 @@ public class Dare {
     private String repeatDays = "";
 
     @Column(nullable = false)
-    private LocalDate startDate = LocalDate.now();
+    private LocalDate startDate;
 
     private LocalDate endDate;
 
@@ -80,7 +80,7 @@ public class Dare {
         this.minutes = Math.max(1, minutes);
         this.repeatType = RepeatType.parse(repeatType).name();
         this.repeatDays = repeatDays == null ? "" : repeatDays.trim();
-        this.startDate = startDate == null ? LocalDate.now() : startDate;
+        this.startDate = java.util.Objects.requireNonNull(startDate, "startDate");
         this.endDate = endDate;
     }
 

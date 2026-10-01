@@ -226,6 +226,7 @@ public class DareService {
     private void validate(String title, LocalDate startDate, LocalDate endDate, String repeatType, List<String> repeatDays, String category) {
         if (title == null || title.isBlank()) throw new IllegalArgumentException("도전 이름을 입력해주세요.");
         if (title.trim().length() > 80) throw new IllegalArgumentException("도전 이름은 80자 이하로 입력해주세요.");
+        if (startDate == null) throw new IllegalArgumentException("시작일을 입력해주세요.");
         DareCategory.parse(category);
         RepeatType parsedRepeat = RepeatType.parse(repeatType);
         if (endDate != null && startDate != null && endDate.isBefore(startDate)) throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
