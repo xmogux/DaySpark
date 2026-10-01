@@ -59,6 +59,37 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!--
+                Test coverage. `./mvnw verify` writes target/site/jacoco/index.html
+                (and jacoco.xml / jacoco.csv). 0.8.15 supports running on JDK 17-26.
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.15</version>
+                <configuration>
+                    <excludes>
+                        <!-- Bootstrapping and bean wiring only: nothing to test. -->
+                        <exclude>com/dayspark/app/DaySparkApplication.class</exclude>
+                        <exclude>com/dayspark/app/config/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
