@@ -13,7 +13,7 @@
 | 커버리지 리포트 | `target/site/jacoco/index.html` (패키지 → 클래스 → 소스 줄 단위) |
 | CI 실행 기록 | GitHub 저장소 → **Actions** 탭 (JDK 17 job 요약에 패키지별 커버리지 표) |
 
-## 2. 테스트 구성 — 54개
+## 2. 테스트 구성 — 55개
 
 | 종류 | 클래스 | 개수 | 확인하는 것 |
 |---|---|---:|---|
@@ -23,7 +23,7 @@
 | 단위 | `FocusSessionUnitTests` | 3 | 타이머 일시정지·재개·완료 조건, 자정 넘김 |
 | 통합 | `DaySparkApplicationTests` | 10 | 주요 페이지, 도전 생성·수정 폼, 완료+사진, 입력 오류 |
 | 통합 | `EnhancementApiTests` | 5 | 수치 목표, 일정 예외, 집중 API, 복습 플랜 |
-| 통합 | `RegressionTests` | 5 | v5.5 리뷰에서 찾은 버그 5건 (아래 3절) |
+| 통합 | `RegressionTests` | 6 | 리뷰·리팩터링 중 찾은 버그 6건 (아래 3절) |
 | 통합 | `DomainRuleTests` | 5 | 복습·Streak·수치 목표·쉬기 규칙 (`domain-rules.md`) |
 | 통합 | `FocusAutoCompleteTests` | 5 | 포모도로 → 진행량 → 자동 완료, 계획 없는 날, 자정 |
 | 통합 | `ErrorHandlingTests` | 4 | 404 / 405 / 400 메시지 / JSON API 오류 |
@@ -57,6 +57,7 @@
 | 폼이 서버가 거부하는 카테고리(MIND)를 보여줌 | `28a7c11` | `74977dd` | `challengeFormOffersExactlyTheSupportedCategories` |
 | 포모도로·진행량·완료가 따로 놂 | `d9f697e` | `ba3fc40` | `FocusAutoCompleteTests` (5개) |
 | 404·405가 500으로, API가 HTML로 응답 | `bc09392` | `c0711eb` | `ErrorHandlingTests` (4개) |
+| (리팩터링이 만든 회귀) v5 이전 집중 기록이 있으면 도전 상세 500 | `3b863c9` | `1fb631d` | `detailPageToleratesFocusSessionsFromBeforeV5` |
 
 기존 테스트 자체의 문제도 고쳤습니다.
 
@@ -75,7 +76,7 @@
 | (기입) | GitHub Actions JDK 17 | `./mvnw -B verify` | | | | |
 | (기입) | GitHub Actions JDK 25 | `./mvnw -B verify` | | | | |
 
-`target/surefire-reports/`의 요약 줄(`Tests run: 54, Failures: 0, Errors: 0, Skipped: 0`)과
+`target/surefire-reports/`의 요약 줄(`Tests run: 55, Failures: 0, Errors: 0, Skipped: 0`)과
 `target/site/jacoco/index.html`의 `com.dayspark.app.service` 행을 그대로 옮겨 적고, 화면을 캡처해 보고서에 넣습니다.
 **실행하지 않은 결과는 적지 않습니다.**
 
@@ -88,13 +89,13 @@
 |---|---|---|
 | 컴파일 | main 47개 + test 15개 파일을 Spring/JPA API 스텁과 함께 `javac --release 17` | 성공 |
 | 단위 테스트 | 위 4개 단위 테스트 클래스를 실제 JUnit 5.10 + AssertJ로 실행 | **20 / 20 통과** |
-| 버그 재현·수정 확인 | 실제 서비스·컨트롤러 코드를 메모리 저장소로 연결해 시나리오 실행 | 수정 전 실패 → 수정 후 통과 (기대값 33개 전부 통과) |
+| 버그 재현·수정 확인 | 실제 서비스·컨트롤러 코드를 메모리 저장소로 연결해 시나리오 실행 | 수정 전 실패 → 수정 후 통과 (기대값 34개 전부 통과) |
 | 리팩터링 동일성 | 같은 데이터(도전 9개, 약 70일)를 리팩터링 전·후 코드에 넣고 30개 화면의 모델 값 비교 | 동일 (사용하지 않던 속성 2개 제거만 차이) |
 | 브라우저 동작 | headless Chrome에서 `focus.js`, `app.js`를 가짜 서버 응답으로 실행 | finish 실패 시 6초간 요청 **1,067회 → 2회**, 정상 타이머 흐름·복습 미리보기 수정 전후 동일 |
 | 템플릿 | 모든 템플릿 태그 균형, `th:replace` 대상 존재, 포맷 전후 `th:*` 속성 동일 | 이상 없음 |
 | 설계 문서 | `architecture.md`의 Mermaid 다이어그램 6개 렌더링 | 전부 렌더링 |
 
-**이 검증으로 확인하지 못한 것:** Spring 컨텍스트 구성, JPA 매핑·쿼리 메서드, Thymeleaf 렌더링, 통합 테스트 34개.
+**이 검증으로 확인하지 못한 것:** Spring 컨텍스트 구성, JPA 매핑·쿼리 메서드, Thymeleaf 렌더링, 통합 테스트 35개.
 이 부분은 `./mvnw verify`(또는 CI)를 처음 돌릴 때 확인됩니다. 실패하면 `target/surefire-reports/`의 해당 `.txt`를 보고 고치세요.
 
 ## 5. 수동 확인 (자동화하지 않은 것)
