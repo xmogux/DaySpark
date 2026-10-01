@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import java.time.LocalDate;
+import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -49,8 +51,12 @@ class EnhancementApiTests {
   mvc.perform(post("/challenges/"+d.getId()+"/schedule")
     .param("date",LocalDate.now().toString()).param("mode","SKIP").param("note","휴식"))
     .andExpect(status().is3xxRedirection());
-  mvc.perform(get("/")).andExpect(status().isOk())
-    .andExpect(model().attribute("todayDares",org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem(d))));
+  // Compare ids: Dare has no equals(), so hasItem(d) on freshly loaded entities is always false
+  // and the old assertion passed even when SKIP did nothing.
+  MvcResult home=mvc.perform(get("/")).andExpect(status().isOk()).andReturn();
+  @SuppressWarnings("unchecked")
+  List<Dare> todayDares=(List<Dare>)home.getModelAndView().getModel().get("todayDares");
+  assertThat(todayDares).extracting(Dare::getId).doesNotContain(d.getId());
   mvc.perform(post("/complete").param("dareId",d.getId().toString()))
     .andExpect(status().is3xxRedirection())
     .andExpect(flash().attributeExists("error"));
