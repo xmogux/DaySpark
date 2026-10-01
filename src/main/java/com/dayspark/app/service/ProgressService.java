@@ -6,7 +6,6 @@ import com.dayspark.app.repository.ProgressLogRepository;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,10 +38,6 @@ public class ProgressService {
 
     public int progress(Dare dare, LocalDate day) {
         return logs.findByDareIdAndDay(dare.getId(), day).stream().mapToInt(ProgressLog::getAmount).sum();
-    }
-
-    public List<ProgressLog> forDare(Dare dare, LocalDate from, LocalDate to) {
-        return logs.findByDareIdAndDayBetween(dare.getId(), from, to);
     }
 
     /** Progress typed in by the user. Only for planned days up to today. */

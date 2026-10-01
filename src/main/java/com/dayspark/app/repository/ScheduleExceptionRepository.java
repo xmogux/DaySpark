@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ScheduleExceptionRepository extends JpaRepository<ScheduleException, Long> {
     Optional<ScheduleException> findByDareIdAndDay(Long id, LocalDate date);
-    List<ScheduleException> findByDay(LocalDate date);
     List<ScheduleException> findByDareIdOrderByDayDesc(Long dareId);
     void deleteAllByDareId(Long id);
 }

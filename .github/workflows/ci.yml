@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test (JDK ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 17 = project baseline (pom.xml java.version, README).
+        # 25 = the JDK installed on the team's Windows PCs.
+        java: ["17", "25"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+
+      - name: Build, run all tests, measure coverage
+        run: |
+          if [ -f mvnw ]; then
+            chmod +x mvnw
+            ./mvnw -B -ntp verify
+          else
+            echo "::warning::mvnw is not committed yet (see README 'Maven Wrapper'); using the runner's Maven."
+            mvn -B -ntp verify
+          fi
+
+      - name: Coverage summary
+        if: matrix.java == '17'
+        run: python3 .github/scripts/coverage_summary.py target/site/jacoco/jacoco.csv >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-jdk${{ matrix.java }}
+          path: target/surefire-reports/
+          if-no-files-found: ignore
+
+      - name: Upload coverage report
+        if: matrix.java == '17'
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/

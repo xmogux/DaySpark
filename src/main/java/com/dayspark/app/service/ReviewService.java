@@ -109,11 +109,6 @@ public class ReviewService {
         return true;
     }
 
-    @Transactional
-    public void clearForDare(Long dareId) {
-        records.deleteAllByDareId(dareId);
-    }
-
     public record ReviewItem(
         Dare dare,
         int number,
