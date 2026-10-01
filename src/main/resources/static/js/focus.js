@@ -1,7 +1,8 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const circumference=2*Math.PI*120,secondsCircumference=2*Math.PI*98,PREVIEW_MS=15000;
-let session=null,phase='idle',round=1,plan=null,deadline=0,breakRemaining=0,finishing=false;
+let session=null,phase='idle',round=1,plan=null,deadline=0,breakRemaining=0,finishing=false,finishRetryAt=0;
+const FINISH_RETRY_MS=5000; // after a failed finish, wait before asking the server again (no 10 req/s loop)
 let previewDeadline=0,previewRemaining=PREVIEW_MS;
 const arc=$('timerArc'),secondsArc=$('timerSecondsArc'),readout=$('timerReadout');
 const status=$('timerStatus'),start=$('startTimer'),pause=$('pauseTimer'),preview=$('previewTimer');
@@ -55,7 +56,7 @@ function refresh(){
  if(phase==='idle'){const total=Number($('focusMinutes').value||25)*60000;draw(total,total,'시작할 준비가 됐어요');return;}
  if(phase==='preview'){draw(Math.max(0,previewDeadline-Date.now()),PREVIEW_MS,'15초 동안 게이지가 채워져요');return;}
  if(phase==='previewpaused'){draw(previewRemaining,PREVIEW_MS,'시각 테스트 일시정지');return;}
- if(phase==='focus'&&session){const remain=Math.max(0,session.remainingMillis-(Date.now()-session.syncedAt));draw(remain,session.durationMinutes*60000,session.dareTitle+'에 집중 중');if(remain===0&&!finishing)finishRound();}
+ if(phase==='focus'&&session){const remain=Math.max(0,session.remainingMillis-(Date.now()-session.syncedAt));draw(remain,session.durationMinutes*60000,session.dareTitle+'에 집중 중');if(remain===0&&!finishing&&Date.now()>=finishRetryAt)finishRound();}
  if(phase==='paused'&&session)draw(session.remainingMillis,session.durationMinutes*60000,'일시정지 중');
  if(phase==='break'){const remain=Math.max(0,deadline-Date.now());draw(remain,(plan?.rest||0)*60000,'다음 집중 전 쉬는 시간');if(remain===0&&!finishing)startNext();}
  if(phase==='breakpaused')draw(breakRemaining,(plan?.rest||0)*60000,'휴식 일시정지 중');
@@ -70,8 +71,15 @@ async function finishRound(){if(finishing||!session)return;finishing=true;try{
  showStats();session=null;
  if(round>=plan.repeats){phase='idle';setStatus(`축하해요! ${plan.repeats}회 반복 완료. 누적 기록은 통계·달력에서 확인하세요.`);clearPlan();round=1;plan=null;}
  else{phase='break';deadline=Date.now()+plan.rest*60000;setStatus(`${round}회차 완료! ${plan.rest}분 휴식 후 다음 집중이 시작돼요.`);}
- }catch(e){setStatus(e.message,true);if(e.message.includes('아직')){try{const current=await request('/current');if(current.active!==false)session={...current,syncedAt:Date.now()};}catch(_){}}}
+ }catch(e){setStatus(e.message,true);finishRetryAt=Date.now()+FINISH_RETRY_MS;await resyncAfterFailedFinish();}
  finally{finishing=false;refresh();}}
+// The server is the source of truth. After a failed finish (clock skew, session cancelled in
+// another tab, server restart) adopt the server's state instead of retrying blindly.
+async function resyncAfterFailedFinish(){try{
+ const current=await request('/current');
+ if(current.active===false){session=null;phase='idle';plan=null;round=1;clearPlan();setStatus('진행 중인 집중 세션이 없어 타이머를 초기화했어요.');return;}
+ session={...current,syncedAt:Date.now()};phase=current.status==='PAUSED'?'paused':'focus';
+ }catch(_){/* offline: keep the current view and retry after FINISH_RETRY_MS */}}
 async function startNext(){if(finishing||phase!=='break')return;round++;phase='loading';savePlan();await beginFocus(true);}
 function beginPreview(){if(phase!=='idle')return;phase='preview';previewDeadline=Date.now()+PREVIEW_MS;previewRemaining=PREVIEW_MS;setStatus('15초 시각 테스트 중 · 통계와 집중 회차에는 저장되지 않아요.');refresh();}
 async function togglePause(){if(finishing)return;try{
