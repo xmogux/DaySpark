@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** Creating, editing, pausing and deleting challenges, and deciding which challenges a day plans. */
 @Service
 public class DareService {
+
     /** Units offered for the numeric daily goal. The form and the validation both use this list. */
     public static final List<String> GOAL_UNITS = List.of("분", "페이지", "회", "개", "잔");
 
@@ -39,10 +40,17 @@ public class DareService {
     private final ImageStorage images;
     private final Clock clock;
 
-    public DareService(DareRepository dareRepository, CompletionRepository completionRepository,
-                       ScheduleExceptionRepository exceptionRepository, FocusSessionRepository focusRepository,
-                       ProgressLogRepository progressRepository, ReviewRecordRepository reviewRecordRepository,
-                       PlanningService planning, ImageStorage images, Clock clock) {
+    public DareService(
+        DareRepository dareRepository,
+        CompletionRepository completionRepository,
+        ScheduleExceptionRepository exceptionRepository,
+        FocusSessionRepository focusRepository,
+        ProgressLogRepository progressRepository,
+        ReviewRecordRepository reviewRecordRepository,
+        PlanningService planning,
+        ImageStorage images,
+        Clock clock
+    ) {
         this.dareRepository = dareRepository;
         this.completionRepository = completionRepository;
         this.exceptionRepository = exceptionRepository;
@@ -72,12 +80,15 @@ public class DareService {
      * recorded, so editing a repeat rule or pausing later never makes done exceed planned.
      */
     public List<Dare> plannedFor(LocalDate date) {
-        Set<Long> completedIds = completionRepository.findByChallengeDate(date).stream()
-                .map(c -> c.getDare().getId())
-                .collect(Collectors.toSet());
-        return all().stream()
-                .filter(d -> completedIds.contains(d.getId()) || planning.isScheduled(d, date))
-                .toList();
+        Set<Long> completedIds = completionRepository
+            .findByChallengeDate(date)
+            .stream()
+            .map(c -> c.getDare().getId())
+            .collect(Collectors.toSet());
+        return all()
+            .stream()
+            .filter(d -> completedIds.contains(d.getId()) || planning.isScheduled(d, date))
+            .toList();
     }
 
     public long plannedCount(LocalDate date) {
@@ -87,8 +98,16 @@ public class DareService {
     @Transactional
     public Dare create(DareRequest request) {
         Validated v = validate(request);
-        Dare dare = new Dare(request.getTitle(), request.getDescription(), v.category().name(), request.getMinutes(),
-                v.repeatType().name(), v.repeatDays(), request.getStartDate(), request.getEndDate());
+        Dare dare = new Dare(
+            request.getTitle(),
+            request.getDescription(),
+            v.category().name(),
+            request.getMinutes(),
+            v.repeatType().name(),
+            v.repeatDays(),
+            request.getStartDate(),
+            request.getEndDate()
+        );
         dare.setGoals(request.getTargetValue(), request.getTargetUnit(), request.getWeeklyTarget());
         dare.configureReview(v.review() != null, v.reviewBase(), v.review() == null ? "" : v.review().normalized());
         return dareRepository.save(dare);
@@ -132,10 +151,12 @@ public class DareService {
     @Transactional
     public void delete(Long id) {
         get(id);
-        completionRepository.findAll().stream()
-                .filter(c -> c.getDare().getId().equals(id))
-                .map(Completion::getImagePath)
-                .forEach(images::deleteQuietly);
+        completionRepository
+            .findAll()
+            .stream()
+            .filter(c -> c.getDare().getId().equals(id))
+            .map(Completion::getImagePath)
+            .forEach(images::deleteQuietly);
         focusRepository.deleteAllByDareId(id);
         progressRepository.deleteAllByDareId(id);
         reviewRecordRepository.deleteAllByDareId(id);
@@ -145,8 +166,13 @@ public class DareService {
     }
 
     /** Parsed, checked form values. {@code review} is null when no review plan applies. */
-    private record Validated(DareCategory category, RepeatType repeatType, String repeatDays,
-                             ReviewIntervals review, LocalDate reviewBase) {}
+    private record Validated(
+        DareCategory category,
+        RepeatType repeatType,
+        String repeatDays,
+        ReviewIntervals review,
+        LocalDate reviewBase
+    ) {}
 
     private Validated validate(DareRequest r) {
         String title = r.getTitle();
@@ -166,15 +192,20 @@ public class DareService {
 
         boolean reviewApplies = r.isReviewEnabled() && category == DareCategory.STUDY;
         ReviewIntervals review = reviewApplies ? ReviewIntervals.parse(r.getReviewIntervals()) : null;
-        LocalDate reviewBase = reviewApplies && r.getReviewBaseDate() != null ? r.getReviewBaseDate() : r.getStartDate();
+        LocalDate reviewBase =
+            reviewApplies && r.getReviewBaseDate() != null ? r.getReviewBaseDate() : r.getStartDate();
         String repeatDays = days.stream().map(DayOfWeek::name).collect(Collectors.joining(","));
         return new Validated(category, repeatType, repeatDays, review, reviewBase);
     }
 
     private static void validateGoals(int targetValue, String targetUnit, int weeklyTarget) {
-        if (targetValue < 1 || targetValue > 10000) throw new IllegalArgumentException("목표 수치는 1~10000 사이여야 합니다.");
+        if (targetValue < 1 || targetValue > 10000) throw new IllegalArgumentException(
+            "목표 수치는 1~10000 사이여야 합니다."
+        );
         if (!GOAL_UNITS.contains(targetUnit)) throw new IllegalArgumentException("지원되지 않는 목표 단위입니다.");
-        if (weeklyTarget < 0 || weeklyTarget > 7) throw new IllegalArgumentException("주간 목표는 0~7회로 설정해주세요.");
+        if (weeklyTarget < 0 || weeklyTarget > 7) throw new IllegalArgumentException(
+            "주간 목표는 0~7회로 설정해주세요."
+        );
     }
 
     private static DayOfWeek parseDay(String value) {
@@ -186,6 +217,8 @@ public class DareService {
     }
 
     private static String reviewFingerprint(Dare dare) {
-        return dare.isReviewEnabled() + "|" + Objects.toString(dare.getReviewBaseDate()) + "|" + dare.getReviewIntervals();
+        return (
+            dare.isReviewEnabled() + "|" + Objects.toString(dare.getReviewBaseDate()) + "|" + dare.getReviewIntervals()
+        );
     }
 }

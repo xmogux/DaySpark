@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 /** Stores completion photos under {@code app.upload-dir} and serves them as {@code /uploads/<file>}. */
 @Component
 public class ImageStorage {
+
     static final String WEB_PREFIX = "/uploads/";
     private static final List<String> ALLOWED = List.of(".jpg", ".jpeg", ".png", ".webp", ".gif");
 

@@ -20,9 +20,7 @@ class ErrorHandlingTests extends IntegrationTestSupport {
 
     @Test
     void unknownPageIs404NotAServerError() throws Exception {
-        mvc.perform(get("/no-such-page"))
-                .andExpect(status().isNotFound())
-                .andExpect(view().name("error"));
+        mvc.perform(get("/no-such-page")).andExpect(status().isNotFound()).andExpect(view().name("error"));
     }
 
     @Test
@@ -32,17 +30,18 @@ class ErrorHandlingTests extends IntegrationTestSupport {
 
     @Test
     void malformedFormInputGetsAFriendlyMessage() throws Exception {
-        mvc.perform(post("/challenges/save").param("title", "x").param("minutes", "열")
-                        .param("startDate", TODAY.toString()))
-                .andExpect(status().isBadRequest())
-                .andExpect(view().name("error"))
-                .andExpect(model().attribute("message", "날짜, 숫자 형식이나 필수 입력값을 확인해주세요."));
+        mvc.perform(
+            post("/challenges/save").param("title", "x").param("minutes", "열").param("startDate", TODAY.toString())
+        )
+            .andExpect(status().isBadRequest())
+            .andExpect(view().name("error"))
+            .andExpect(model().attribute("message", "날짜, 숫자 형식이나 필수 입력값을 확인해주세요."));
     }
 
     @Test
     void focusApiAnswersMissingParametersWithJson() throws Exception {
         mvc.perform(post("/api/focus/start"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").exists());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").exists());
     }
 }

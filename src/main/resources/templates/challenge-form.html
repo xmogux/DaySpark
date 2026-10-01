@@ -1,105 +1,232 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title th:text="${challengeId == null ? '새 도전' : '도전 수정'} + ' — DaySpark'">도전</title>
-  <link rel="stylesheet" th:href="@{/css/app.css(v=56)}">
-</head>
-<body>
-<div class="page-shell">
-  <header th:replace="~{fragments/layout :: topbar('challenges')}"></header>
-  <main class="form-page">
-    <a class="back-link" href="/challenges">← 도전 목록</a>
-    <section class="form-shell">
-      <div class="form-intro">
-        <span class="eyebrow">DESIGN YOUR ROUTINE</span>
-        <h1 th:text="${challengeId == null ? '새 도전 만들기' : '도전 수정하기'}">새 도전 만들기</h1>
-        <p>무리하지 않고 반복할 수 있을 만큼 작고 구체적으로 적어보세요.</p>
-      </div>
-      <div th:if="${error}" class="toast error" th:text="${error}"></div>
-
-      <form class="challenge-form" action="/challenges/save" method="post" th:object="${form}">
-        <input th:if="${challengeId != null}" type="hidden" name="id" th:value="${challengeId}">
-        <div class="form-grid">
-          <label class="field span-2"><span>도전 이름</span>
-            <input name="title" maxlength="80" required placeholder="예: 일본어 단어 20개 외우기" th:value="*{title}">
-          </label>
-          <label class="field span-2"><span>설명</span>
-            <textarea name="description" maxlength="220" placeholder="어떻게 수행할지 짧게 적어주세요." th:text="*{description}"></textarea>
-          </label>
-          <label class="field"><span>카테고리</span>
-            <select name="category">
-              <option th:each="c : ${categories}" th:value="${c.name()}" th:text="${c.name()}"
-                      th:selected="${c.name() == form.category}">LIFE</option>
-            </select>
-          </label>
-          <label class="field"><span>예상 시간(분)</span>
-            <input type="number" name="minutes" min="1" max="600" th:value="*{minutes}">
-          </label>
-          <label class="field"><span>하루 목표 수치</span>
-            <input type="number" name="targetValue" min="1" max="10000" required th:value="*{targetValue}">
-          </label>
-          <label class="field"><span>목표 단위</span>
-            <select name="targetUnit">
-              <option th:each="u : ${units}" th:value="${u}" th:text="${u}" th:selected="${u == form.targetUnit}">회</option>
-            </select>
-          </label>
-          <label class="field span-2"><span>주간 도전 완료 목표 (0 = 설정 안 함)</span>
-            <input type="number" name="weeklyTarget" min="0" max="7" th:value="*{weeklyTarget}">
-          </label>
-
-          <div id="reviewSettings" class="review-settings span-2">
-            <div class="review-settings-head">
-              <div><span class="review-kicker">↻ STUDY REVIEW PLAN</span><strong>복습 플랜</strong><small>공부 도전에만 적용돼요. 한 학습 단위(예: 3장)의 복습 날짜 간격을 직접 정합니다.</small></div>
-              <label class="review-switch"><input id="reviewEnabled" type="checkbox" name="reviewEnabled" value="true" th:checked="*{reviewEnabled}"><span>사용</span></label>
-            </div>
-            <div id="reviewFields" class="review-fields">
-              <label class="field"><span>복습 기준일</span>
-                <input id="reviewBaseDate" type="date" name="reviewBaseDate" th:value="*{reviewBaseDate}">
-              </label>
-              <label class="field"><span>복습 간격 (일)</span>
-                <input id="reviewIntervals" type="text" name="reviewIntervals" placeholder="예: 1, 3, 7, 14" th:value="*{reviewIntervals}">
-                <small>예: 1, 3, 7, 14 → 기준일 다음 날, 3일 뒤, 7일 뒤, 14일 뒤 (총 4번)</small>
-              </label>
-              <div class="review-preview"><span>예정일 미리보기</span><div id="reviewPreviewDates"></div></div>
-            </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title th:text="${challengeId == null ? '새 도전' : '도전 수정'} + ' — DaySpark'">도전</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=56)}" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header th:replace="~{fragments/layout :: topbar('challenges')}"></header>
+      <main class="form-page">
+        <a class="back-link" href="/challenges">← 도전 목록</a>
+        <section class="form-shell">
+          <div class="form-intro">
+            <span class="eyebrow">DESIGN YOUR ROUTINE</span>
+            <h1 th:text="${challengeId == null ? '새 도전 만들기' : '도전 수정하기'}">새 도전 만들기</h1>
+            <p>무리하지 않고 반복할 수 있을 만큼 작고 구체적으로 적어보세요.</p>
           </div>
+          <div th:if="${error}" class="toast error" th:text="${error}"></div>
 
-          <div class="field span-2">
-            <span>반복 일정</span>
-            <div class="repeat-options">
-              <label><input type="radio" name="repeatType" value="DAILY" th:checked="${form.repeatType == 'DAILY'}"> 매일</label>
-              <label><input type="radio" name="repeatType" value="WEEKDAYS" th:checked="${form.repeatType == 'WEEKDAYS'}"> 평일</label>
-              <label><input type="radio" name="repeatType" value="WEEKENDS" th:checked="${form.repeatType == 'WEEKENDS'}"> 주말</label>
-              <label><input type="radio" name="repeatType" value="CUSTOM" th:checked="${form.repeatType == 'CUSTOM'}"> 요일 선택</label>
-            </div>
-            <div id="customDays" class="weekday-row">
-              <label><input type="checkbox" name="repeatDays" value="MONDAY" th:checked="${form.repeatDays.contains('MONDAY')}">월</label>
-              <label><input type="checkbox" name="repeatDays" value="TUESDAY" th:checked="${form.repeatDays.contains('TUESDAY')}">화</label>
-              <label><input type="checkbox" name="repeatDays" value="WEDNESDAY" th:checked="${form.repeatDays.contains('WEDNESDAY')}">수</label>
-              <label><input type="checkbox" name="repeatDays" value="THURSDAY" th:checked="${form.repeatDays.contains('THURSDAY')}">목</label>
-              <label><input type="checkbox" name="repeatDays" value="FRIDAY" th:checked="${form.repeatDays.contains('FRIDAY')}">금</label>
-              <label><input type="checkbox" name="repeatDays" value="SATURDAY" th:checked="${form.repeatDays.contains('SATURDAY')}">토</label>
-              <label><input type="checkbox" name="repeatDays" value="SUNDAY" th:checked="${form.repeatDays.contains('SUNDAY')}">일</label>
-            </div>
-          </div>
+          <form class="challenge-form" action="/challenges/save" method="post" th:object="${form}">
+            <input th:if="${challengeId != null}" type="hidden" name="id" th:value="${challengeId}" />
+            <div class="form-grid">
+              <label class="field span-2"
+                ><span>도전 이름</span>
+                <input
+                  name="title"
+                  maxlength="80"
+                  required
+                  placeholder="예: 일본어 단어 20개 외우기"
+                  th:value="*{title}"
+                />
+              </label>
+              <label class="field span-2"
+                ><span>설명</span>
+                <textarea
+                  name="description"
+                  maxlength="220"
+                  placeholder="어떻게 수행할지 짧게 적어주세요."
+                  th:text="*{description}"
+                ></textarea>
+              </label>
+              <label class="field"
+                ><span>카테고리</span>
+                <select name="category">
+                  <option
+                    th:each="c : ${categories}"
+                    th:value="${c.name()}"
+                    th:text="${c.name()}"
+                    th:selected="${c.name() == form.category}"
+                  >
+                    LIFE
+                  </option>
+                </select>
+              </label>
+              <label class="field"
+                ><span>예상 시간(분)</span>
+                <input type="number" name="minutes" min="1" max="600" th:value="*{minutes}" />
+              </label>
+              <label class="field"
+                ><span>하루 목표 수치</span>
+                <input type="number" name="targetValue" min="1" max="10000" required th:value="*{targetValue}" />
+              </label>
+              <label class="field"
+                ><span>목표 단위</span>
+                <select name="targetUnit">
+                  <option th:each="u : ${units}" th:value="${u}" th:text="${u}" th:selected="${u == form.targetUnit}">
+                    회
+                  </option>
+                </select>
+              </label>
+              <label class="field span-2"
+                ><span>주간 도전 완료 목표 (0 = 설정 안 함)</span>
+                <input type="number" name="weeklyTarget" min="0" max="7" th:value="*{weeklyTarget}" />
+              </label>
 
-          <label class="field"><span>시작일</span>
-            <input type="date" name="startDate" required th:value="*{startDate}">
-          </label>
-          <label class="field"><span>종료일 <em>선택</em></span>
-            <input type="date" name="endDate" th:value="*{endDate}">
-          </label>
-        </div>
-        <div class="form-actions">
-          <a class="ghost-btn" href="/challenges">취소</a>
-          <button class="primary-btn" type="submit" th:text="${challengeId == null ? '도전 만들기 →' : '수정 저장 →'}">저장</button>
-        </div>
-      </form>
-    </section>
-  </main>
-</div>
-<script th:src="@{/js/app.js}"></script>
-</body>
+              <div id="reviewSettings" class="review-settings span-2">
+                <div class="review-settings-head">
+                  <div>
+                    <span class="review-kicker">↻ STUDY REVIEW PLAN</span><strong>복습 플랜</strong
+                    ><small>공부 도전에만 적용돼요. 한 학습 단위(예: 3장)의 복습 날짜 간격을 직접 정합니다.</small>
+                  </div>
+                  <label class="review-switch"
+                    ><input
+                      id="reviewEnabled"
+                      type="checkbox"
+                      name="reviewEnabled"
+                      value="true"
+                      th:checked="*{reviewEnabled}"
+                    /><span>사용</span></label
+                  >
+                </div>
+                <div id="reviewFields" class="review-fields">
+                  <label class="field"
+                    ><span>복습 기준일</span>
+                    <input id="reviewBaseDate" type="date" name="reviewBaseDate" th:value="*{reviewBaseDate}" />
+                  </label>
+                  <label class="field"
+                    ><span>복습 간격 (일)</span>
+                    <input
+                      id="reviewIntervals"
+                      type="text"
+                      name="reviewIntervals"
+                      placeholder="예: 1, 3, 7, 14"
+                      th:value="*{reviewIntervals}"
+                    />
+                    <small>예: 1, 3, 7, 14 → 기준일 다음 날, 3일 뒤, 7일 뒤, 14일 뒤 (총 4번)</small>
+                  </label>
+                  <div class="review-preview">
+                    <span>예정일 미리보기</span>
+                    <div id="reviewPreviewDates"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field span-2">
+                <span>반복 일정</span>
+                <div class="repeat-options">
+                  <label
+                    ><input type="radio" name="repeatType" value="DAILY" th:checked="${form.repeatType == 'DAILY'}" />
+                    매일</label
+                  >
+                  <label
+                    ><input
+                      type="radio"
+                      name="repeatType"
+                      value="WEEKDAYS"
+                      th:checked="${form.repeatType == 'WEEKDAYS'}"
+                    />
+                    평일</label
+                  >
+                  <label
+                    ><input
+                      type="radio"
+                      name="repeatType"
+                      value="WEEKENDS"
+                      th:checked="${form.repeatType == 'WEEKENDS'}"
+                    />
+                    주말</label
+                  >
+                  <label
+                    ><input type="radio" name="repeatType" value="CUSTOM" th:checked="${form.repeatType == 'CUSTOM'}" />
+                    요일 선택</label
+                  >
+                </div>
+                <div id="customDays" class="weekday-row">
+                  <label
+                    ><input
+                      type="checkbox"
+                      name="repeatDays"
+                      value="MONDAY"
+                      th:checked="${form.repeatDays.contains('MONDAY')}"
+                    />월</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      name="repeatDays"
+                      value="TUESDAY"
+                      th:checked="${form.repeatDays.contains('TUESDAY')}"
+                    />화</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      name="repeatDays"
+                      value="WEDNESDAY"
+                      th:checked="${form.repeatDays.contains('WEDNESDAY')}"
+                    />수</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      name="repeatDays"
+                      value="THURSDAY"
+                      th:checked="${form.repeatDays.contains('THURSDAY')}"
+                    />목</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      name="repeatDays"
+                      value="FRIDAY"
+                      th:checked="${form.repeatDays.contains('FRIDAY')}"
+                    />금</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      name="repeatDays"
+                      value="SATURDAY"
+                      th:checked="${form.repeatDays.contains('SATURDAY')}"
+                    />토</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      name="repeatDays"
+                      value="SUNDAY"
+                      th:checked="${form.repeatDays.contains('SUNDAY')}"
+                    />일</label
+                  >
+                </div>
+              </div>
+
+              <label class="field"
+                ><span>시작일</span>
+                <input type="date" name="startDate" required th:value="*{startDate}" />
+              </label>
+              <label class="field"
+                ><span>종료일 <em>선택</em></span>
+                <input type="date" name="endDate" th:value="*{endDate}" />
+              </label>
+            </div>
+            <div class="form-actions">
+              <a class="ghost-btn" href="/challenges">취소</a>
+              <button
+                class="primary-btn"
+                type="submit"
+                th:text="${challengeId == null ? '도전 만들기 →' : '수정 저장 →'}"
+              >
+                저장
+              </button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+    <script th:src="@{/js/app.js}"></script>
+  </body>
 </html>

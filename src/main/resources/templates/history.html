@@ -1,1 +1,54 @@
-<!DOCTYPE html><html lang="ko" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>기록 — DaySpark</title><link rel="stylesheet" th:href="@{/css/app.css(v=56)}"></head><body><div class="page-shell"><header th:replace="~{fragments/layout :: topbar('history')}"></header><main><section class="page-heading"><div><span class="eyebrow">YOUR MOMENTS</span><h1>완료 기록</h1><p>도전을 끝낸 순간과 그날 남긴 메모를 시간순으로 모아봅니다.</p></div><div class="streak-chip">✦ 현재 <b th:text="${streak}">0</b>일 연속</div></section><div th:if="${#lists.isEmpty(history)}" class="empty-card large-empty"><div>◌</div><h3>아직 기록이 없어요.</h3><a class="secondary-btn" href="/">오늘 도전 보기</a></div><section class="timeline" th:if="${!#lists.isEmpty(history)}"><article class="timeline-item" th:each="item:${history}"><div class="timeline-date"><strong th:text="${#temporals.format(item.challengeDate,'MM.dd')}">09.21</strong><span th:text="${#temporals.format(item.challengeDate,'yyyy')}">2026</span></div><div class="timeline-line"><span></span></div><div class="timeline-card"><div class="timeline-text"><span class="category-mini" th:text="${item.dare.category}">STUDY</span><h3 th:text="${item.dare.title}">도전</h3><p th:text="${#strings.isEmpty(item.note) ? '메모 없이 완료했어요.' : item.note}">메모</p><div class="complete-time">✓ 완료 · <span th:text="${#temporals.format(item.completedAt,'HH:mm')}">21:30</span></div></div><img th:if="${item.imagePath != null}" th:src="${item.imagePath}" alt="도전 기록 사진" class="timeline-photo"></div></article></section></main></div></body></html>
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>기록 — DaySpark</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=56)}" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header th:replace="~{fragments/layout :: topbar('history')}"></header>
+      <main>
+        <section class="page-heading">
+          <div>
+            <span class="eyebrow">YOUR MOMENTS</span>
+            <h1>완료 기록</h1>
+            <p>도전을 끝낸 순간과 그날 남긴 메모를 시간순으로 모아봅니다.</p>
+          </div>
+          <div class="streak-chip">✦ 현재 <b th:text="${streak}">0</b>일 연속</div>
+        </section>
+        <div th:if="${#lists.isEmpty(history)}" class="empty-card large-empty">
+          <div>◌</div>
+          <h3>아직 기록이 없어요.</h3>
+          <a class="secondary-btn" href="/">오늘 도전 보기</a>
+        </div>
+        <section class="timeline" th:if="${!#lists.isEmpty(history)}">
+          <article class="timeline-item" th:each="item:${history}">
+            <div class="timeline-date">
+              <strong th:text="${#temporals.format(item.challengeDate,'MM.dd')}">09.21</strong
+              ><span th:text="${#temporals.format(item.challengeDate,'yyyy')}">2026</span>
+            </div>
+            <div class="timeline-line"><span></span></div>
+            <div class="timeline-card">
+              <div class="timeline-text">
+                <span class="category-mini" th:text="${item.dare.category}">STUDY</span>
+                <h3 th:text="${item.dare.title}">도전</h3>
+                <p th:text="${#strings.isEmpty(item.note) ? '메모 없이 완료했어요.' : item.note}">메모</p>
+                <div class="complete-time">
+                  ✓ 완료 · <span th:text="${#temporals.format(item.completedAt,'HH:mm')}">21:30</span>
+                </div>
+              </div>
+              <img
+                th:if="${item.imagePath != null}"
+                th:src="${item.imagePath}"
+                alt="도전 기록 사진"
+                class="timeline-photo"
+              />
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

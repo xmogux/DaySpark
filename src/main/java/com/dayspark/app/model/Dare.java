@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "dares")
 public class Dare {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -76,8 +77,16 @@ public class Dare {
 
     protected Dare() {}
 
-    public Dare(String title, String description, String category, int minutes,
-                String repeatType, String repeatDays, LocalDate startDate, LocalDate endDate) {
+    public Dare(
+        String title,
+        String description,
+        String category,
+        int minutes,
+        String repeatType,
+        String repeatDays,
+        LocalDate startDate,
+        LocalDate endDate
+    ) {
         describe(title, description, category, minutes);
         reschedule(repeatType, repeatDays, startDate, endDate);
     }
@@ -144,10 +153,10 @@ public class Dare {
     public Set<DayOfWeek> getRepeatDaySet() {
         if (repeatDays == null || repeatDays.isBlank()) return Set.of();
         return Arrays.stream(repeatDays.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isBlank())
-                .map(DayOfWeek::valueOf)
-                .collect(Collectors.toUnmodifiableSet());
+            .map(String::trim)
+            .filter(s -> !s.isBlank())
+            .map(DayOfWeek::valueOf)
+            .collect(Collectors.toUnmodifiableSet());
     }
 
     public String getRepeatLabel() {
@@ -162,29 +171,83 @@ public class Dare {
     private String customDaysKorean() {
         Set<DayOfWeek> days = getRepeatDaySet();
         if (days.isEmpty()) return "요일 미지정";
-        String[] ko = {"월", "화", "수", "목", "금", "토", "일"};
-        return days.stream().sorted().map(d -> ko[d.getValue() - 1]).collect(Collectors.joining("·"));
+        String[] ko = { "월", "화", "수", "목", "금", "토", "일" };
+        return days
+            .stream()
+            .sorted()
+            .map(d -> ko[d.getValue() - 1])
+            .collect(Collectors.joining("·"));
     }
 
     public int getReviewCount() {
         return reviewEnabled ? ReviewIntervals.ofStored(reviewIntervals).size() : 0;
     }
 
-    public Long getId() { return id; }
-    public String getTitle() { return title; }
-    public String getDescription() { return description; }
-    public String getCategory() { return category; }
-    public int getMinutes() { return minutes; }
-    public String getRepeatType() { return repeatType; }
-    public String getRepeatDays() { return repeatDays; }
-    public LocalDate getStartDate() { return startDate; }
-    public LocalDate getEndDate() { return endDate; }
-    public boolean isActive() { return active; }
-    public LocalDate getPausedFrom() { return pausedFrom; }
-    public int getTargetValue() { return targetValue; }
-    public String getTargetUnit() { return targetUnit; }
-    public int getWeeklyTarget() { return weeklyTarget; }
-    public boolean isReviewEnabled() { return reviewEnabled; }
-    public LocalDate getReviewBaseDate() { return reviewBaseDate; }
-    public String getReviewIntervals() { return reviewIntervals; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public int getMinutes() {
+        return minutes;
+    }
+
+    public String getRepeatType() {
+        return repeatType;
+    }
+
+    public String getRepeatDays() {
+        return repeatDays;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public LocalDate getPausedFrom() {
+        return pausedFrom;
+    }
+
+    public int getTargetValue() {
+        return targetValue;
+    }
+
+    public String getTargetUnit() {
+        return targetUnit;
+    }
+
+    public int getWeeklyTarget() {
+        return weeklyTarget;
+    }
+
+    public boolean isReviewEnabled() {
+        return reviewEnabled;
+    }
+
+    public LocalDate getReviewBaseDate() {
+        return reviewBaseDate;
+    }
+
+    public String getReviewIntervals() {
+        return reviewIntervals;
+    }
 }

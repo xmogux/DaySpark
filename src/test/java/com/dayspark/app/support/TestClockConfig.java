@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Primary;
 /** Replaces the system clock with {@link MutableClock} for every integration test. */
 @TestConfiguration
 public class TestClockConfig {
+
     @Bean
     @Primary
     MutableClock testClock() {

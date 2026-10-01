@@ -7,6 +7,7 @@ import java.time.ZoneId;
 
 /** The fixed calendar every test runs in. 2026-10-07 is a Wednesday. */
 public final class TestDates {
+
     public static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
     public static final LocalDate TODAY = LocalDate.of(2026, 10, 7);
     public static final Instant TODAY_NOON = TODAY.atTime(LocalTime.NOON).atZone(ZONE).toInstant();

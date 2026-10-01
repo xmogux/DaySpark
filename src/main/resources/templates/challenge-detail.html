@@ -1,9 +1,177 @@
-<!doctype html><html lang="ko" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>목표 상세 — DaySpark</title><link rel="stylesheet" href="/css/app.css?v=56"></head>
-<body><div class="page-shell"><header th:replace="~{fragments/layout :: topbar('challenges')}"></header>
-<main><a href="/challenges" class="back-link">← 도전 목록</a><section class="page-heading detail-heading"><div><span class="eyebrow">CHALLENGE INSIGHTS</span><h1 th:text="${dare.title}">알고리즘 공부</h1><p th:text="${dare.description}">설명</p></div><a th:href="@{/focus(dareId=${dare.id})}" class="secondary-btn">◷ 이 목표로 집중하기</a></section>
-<div th:if="${success}" class="toast success" th:text="${success}"></div><div th:if="${error}" class="toast error" th:text="${error}"></div>
-<section class="detail-stats"><article><span>이번 달 달성률</span><strong th:text="${monthRate}+'%'">0%</strong><small th:text="${monthDone}+'회 완료'">0회</small></article><article><span>목표별 연속 달성</span><strong th:text="${goalStreak}+'회'">0회</strong><small>예정일 기준</small></article><article><span>이번 주 도전</span><strong th:text="${weekDone}+'회'">0회</strong><small th:text="${dare.weeklyTarget > 0 ? '목표 '+dare.weeklyTarget+'회' : '주간 목표 미설정'}">목표</small></article><article><span>이번 달 집중</span><strong th:text="${monthFocus}+'분'">0분</strong><small th:text="${focusCount}+'회 전체 완료'">0회</small></article></section>
-<div class="detail-columns"><section class="panel"><span class="eyebrow">MEASURABLE GOALS</span><h2>수치 목표 설정</h2><p>예: 독서 30페이지, 운동 40분. 타이머 완료 시 ‘분’ 목표의 진행량에 자동 합산되고, 목표량에 처음 도달하면 자동으로 완료돼요.</p><form th:action="@{'/challenges/'+${dare.id}+'/goals'}" method="post"><div class="mini-form-grid"><label>매일 목표 수치 <input type="number" name="targetValue" min="1" max="10000" required th:value="${dare.targetValue}"></label><label>단위<select name="targetUnit"><option th:each="u : ${units}" th:value="${u}" th:text="${u}" th:selected="${u == dare.targetUnit}">분</option></select></label></div><label>주간 완료 목표(0 = 사용 안 함)<input type="number" name="weeklyTarget" min="0" max="7" th:value="${dare.weeklyTarget}"></label><button class="primary-btn" type="submit">목표 설정 저장</button></form><div class="today-quant"><strong>오늘 기록한 진행량</strong><span th:text="${progress}+' / '+${dare.targetValue}+${dare.targetUnit}">0 / 25분</span><div class="goal-track"><span th:style="'width:'+${T(java.lang.Math).min(100,progress*100/dare.targetValue)}+'%'"></span></div></div><form th:action="@{'/challenges/'+${dare.id}+'/progress'}" method="post" class="inline-entry"><input name="amount" type="number" min="1" max="10000" placeholder="추가할 수치" required><button class="secondary-btn" type="submit">+ 직접 기록</button></form></section>
-<section class="panel"><span class="eyebrow">FLEXIBLE SCHEDULE</span><h2>일정 변경·휴식일</h2><p>특정 날짜를 쉬거나 평소 일정에 없던 날을 추가할 수 있어요. 연기하려면 기존 날짜를 ‘쉬기’로, 새 날짜를 ‘추가’로 각각 저장하세요.</p><form th:action="@{'/challenges/'+${dare.id}+'/schedule'}" method="post"><label>적용할 날짜<input type="date" name="date" required th:min="${today}" th:value="${today}"></label><label>변경 유형<select name="mode"><option value="SKIP">이날 쉬기</option><option value="ADD">이날 추가</option><option value="RESET">예외 해제 (원래 반복 일정)</option></select></label><label>이유 (선택)<input name="note" maxlength="120" placeholder="시험기간 / 휴식일 등"></label><button class="primary-btn" type="submit">일정 적용</button></form><h3>적용된 예외</h3><div th:if="${#lists.isEmpty(overrides)}" class="empty-inline">등록된 일정 변경이 없어요.</div><div class="override-row" th:each="o:${overrides}"><b th:text="${o.day}">2026-10-01</b><span th:text="${o.mode == 'SKIP' ? '쉬는 날' : '추가한 날'}">쉬는 날</span><small th:text="${o.note}"></small></div></section></div>
-<section class="panel" th:if="${dare.category == 'STUDY' && dare.reviewEnabled}"><span class="eyebrow">REVIEW PLAN</span><h2>복습 플랜</h2><p>직접 정한 간격에 따라 복습 일정을 한눈에 확인하고 완료 여부를 기록할 수 있어요.</p><div class="review-plan-summary"><div><span>복습 기준일</span><strong th:text="${dare.reviewBaseDate}">2026-10-02</strong></div><div><span>진행도</span><strong th:text="${reviewDone} + ' / ' + ${reviewTotal}">1 / 4</strong></div></div><div class="review-timeline"><div class="review-row" th:each="r:${reviewPlan}" th:classappend="${r.completed ? ' is-done' : (r.dueDate.isBefore(today) ? ' is-overdue' : '')}"><span class="review-step" th:text="${r.completed ? '✓' : r.number}">1</span><div class="review-copy"><strong th:text="${r.number} + '차 복습 · ' + ${r.dueDate}">1차 복습 · 2026-10-03</strong><span th:text="${'기준일 +' + r.offsetDays + '일'}">기준일 +1일</span></div><span class="review-status is-done" th:if="${r.completed}">완료</span><span class="review-status is-overdue" th:if="${!r.completed && r.dueDate.isBefore(today)}">미완료</span><span class="review-status" th:if="${!r.completed && r.dueDate.equals(today)}">오늘</span><span class="review-status" th:if="${!r.completed && r.dueDate.isAfter(today)}">예정</span><form class="review-toggle-form" th:if="${!r.completed}" th:action="@{'/challenges/'+${dare.id}+'/reviews/'+${r.offsetDays}+'/toggle'}" method="post"><button class="secondary-btn" type="submit">복습 완료</button></form><form class="review-toggle-form" th:if="${r.completed}" th:action="@{'/challenges/'+${dare.id}+'/reviews/'+${r.offsetDays}+'/toggle'}" method="post"><button class="ghost-btn" type="submit">완료 취소</button></form></div></div><a class="inline-link" th:href="@{'/challenges/'+${dare.id}+'/edit'}">복습 일정 수정 →</a></section>
-<section class="panel"><span class="eyebrow">RECENT COMPLETIONS</span><h2>최근 완료 기록</h2><p th:if="${#lists.isEmpty(recentCompletions)}">아직 완료 기록이 없어요.</p><div class="override-row" th:each="c:${recentCompletions}"><b th:text="${c.challengeDate}">2026-09-21</b><span th:text="${#strings.isEmpty(c.note) ? '완료' : c.note}">완료</span></div></section></main></div></body></html>
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>목표 상세 — DaySpark</title>
+    <link rel="stylesheet" href="/css/app.css?v=56" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header th:replace="~{fragments/layout :: topbar('challenges')}"></header>
+      <main>
+        <a href="/challenges" class="back-link">← 도전 목록</a>
+        <section class="page-heading detail-heading">
+          <div>
+            <span class="eyebrow">CHALLENGE INSIGHTS</span>
+            <h1 th:text="${dare.title}">알고리즘 공부</h1>
+            <p th:text="${dare.description}">설명</p>
+          </div>
+          <a th:href="@{/focus(dareId=${dare.id})}" class="secondary-btn">◷ 이 목표로 집중하기</a>
+        </section>
+        <div th:if="${success}" class="toast success" th:text="${success}"></div>
+        <div th:if="${error}" class="toast error" th:text="${error}"></div>
+        <section class="detail-stats">
+          <article>
+            <span>이번 달 달성률</span><strong th:text="${monthRate}+'%'">0%</strong
+            ><small th:text="${monthDone}+'회 완료'">0회</small>
+          </article>
+          <article>
+            <span>목표별 연속 달성</span><strong th:text="${goalStreak}+'회'">0회</strong><small>예정일 기준</small>
+          </article>
+          <article>
+            <span>이번 주 도전</span><strong th:text="${weekDone}+'회'">0회</strong
+            ><small th:text="${dare.weeklyTarget > 0 ? '목표 '+dare.weeklyTarget+'회' : '주간 목표 미설정'}"
+              >목표</small
+            >
+          </article>
+          <article>
+            <span>이번 달 집중</span><strong th:text="${monthFocus}+'분'">0분</strong
+            ><small th:text="${focusCount}+'회 전체 완료'">0회</small>
+          </article>
+        </section>
+        <div class="detail-columns">
+          <section class="panel">
+            <span class="eyebrow">MEASURABLE GOALS</span>
+            <h2>수치 목표 설정</h2>
+            <p>
+              예: 독서 30페이지, 운동 40분. 타이머 완료 시 ‘분’ 목표의 진행량에 자동 합산되고, 목표량에 처음 도달하면
+              자동으로 완료돼요.
+            </p>
+            <form th:action="@{'/challenges/'+${dare.id}+'/goals'}" method="post">
+              <div class="mini-form-grid">
+                <label
+                  >매일 목표 수치
+                  <input
+                    type="number"
+                    name="targetValue"
+                    min="1"
+                    max="10000"
+                    required
+                    th:value="${dare.targetValue}" /></label
+                ><label
+                  >단위<select name="targetUnit">
+                    <option th:each="u : ${units}" th:value="${u}" th:text="${u}" th:selected="${u == dare.targetUnit}">
+                      분
+                    </option>
+                  </select></label
+                >
+              </div>
+              <label
+                >주간 완료 목표(0 = 사용 안 함)<input
+                  type="number"
+                  name="weeklyTarget"
+                  min="0"
+                  max="7"
+                  th:value="${dare.weeklyTarget}" /></label
+              ><button class="primary-btn" type="submit">목표 설정 저장</button>
+            </form>
+            <div class="today-quant">
+              <strong>오늘 기록한 진행량</strong
+              ><span th:text="${progress}+' / '+${dare.targetValue}+${dare.targetUnit}">0 / 25분</span>
+              <div class="goal-track">
+                <span th:style="'width:'+${T(java.lang.Math).min(100,progress*100/dare.targetValue)}+'%'"></span>
+              </div>
+            </div>
+            <form th:action="@{'/challenges/'+${dare.id}+'/progress'}" method="post" class="inline-entry">
+              <input name="amount" type="number" min="1" max="10000" placeholder="추가할 수치" required /><button
+                class="secondary-btn"
+                type="submit"
+              >
+                + 직접 기록
+              </button>
+            </form>
+          </section>
+          <section class="panel">
+            <span class="eyebrow">FLEXIBLE SCHEDULE</span>
+            <h2>일정 변경·휴식일</h2>
+            <p>
+              특정 날짜를 쉬거나 평소 일정에 없던 날을 추가할 수 있어요. 연기하려면 기존 날짜를 ‘쉬기’로, 새 날짜를
+              ‘추가’로 각각 저장하세요.
+            </p>
+            <form th:action="@{'/challenges/'+${dare.id}+'/schedule'}" method="post">
+              <label>적용할 날짜<input type="date" name="date" required th:min="${today}" th:value="${today}" /></label
+              ><label
+                >변경 유형<select name="mode">
+                  <option value="SKIP">이날 쉬기</option>
+                  <option value="ADD">이날 추가</option>
+                  <option value="RESET">예외 해제 (원래 반복 일정)</option>
+                </select></label
+              ><label>이유 (선택)<input name="note" maxlength="120" placeholder="시험기간 / 휴식일 등" /></label
+              ><button class="primary-btn" type="submit">일정 적용</button>
+            </form>
+            <h3>적용된 예외</h3>
+            <div th:if="${#lists.isEmpty(overrides)}" class="empty-inline">등록된 일정 변경이 없어요.</div>
+            <div class="override-row" th:each="o:${overrides}">
+              <b th:text="${o.day}">2026-10-01</b
+              ><span th:text="${o.mode == 'SKIP' ? '쉬는 날' : '추가한 날'}">쉬는 날</span
+              ><small th:text="${o.note}"></small>
+            </div>
+          </section>
+        </div>
+        <section class="panel" th:if="${dare.category == 'STUDY' && dare.reviewEnabled}">
+          <span class="eyebrow">REVIEW PLAN</span>
+          <h2>복습 플랜</h2>
+          <p>직접 정한 간격에 따라 복습 일정을 한눈에 확인하고 완료 여부를 기록할 수 있어요.</p>
+          <div class="review-plan-summary">
+            <div><span>복습 기준일</span><strong th:text="${dare.reviewBaseDate}">2026-10-02</strong></div>
+            <div><span>진행도</span><strong th:text="${reviewDone} + ' / ' + ${reviewTotal}">1 / 4</strong></div>
+          </div>
+          <div class="review-timeline">
+            <div
+              class="review-row"
+              th:each="r:${reviewPlan}"
+              th:classappend="${r.completed ? ' is-done' : (r.dueDate.isBefore(today) ? ' is-overdue' : '')}"
+            >
+              <span class="review-step" th:text="${r.completed ? '✓' : r.number}">1</span>
+              <div class="review-copy">
+                <strong th:text="${r.number} + '차 복습 · ' + ${r.dueDate}">1차 복습 · 2026-10-03</strong
+                ><span th:text="${'기준일 +' + r.offsetDays + '일'}">기준일 +1일</span>
+              </div>
+              <span class="review-status is-done" th:if="${r.completed}">완료</span
+              ><span class="review-status is-overdue" th:if="${!r.completed && r.dueDate.isBefore(today)}">미완료</span
+              ><span class="review-status" th:if="${!r.completed && r.dueDate.equals(today)}">오늘</span
+              ><span class="review-status" th:if="${!r.completed && r.dueDate.isAfter(today)}">예정</span>
+              <form
+                class="review-toggle-form"
+                th:if="${!r.completed}"
+                th:action="@{'/challenges/'+${dare.id}+'/reviews/'+${r.offsetDays}+'/toggle'}"
+                method="post"
+              >
+                <button class="secondary-btn" type="submit">복습 완료</button>
+              </form>
+              <form
+                class="review-toggle-form"
+                th:if="${r.completed}"
+                th:action="@{'/challenges/'+${dare.id}+'/reviews/'+${r.offsetDays}+'/toggle'}"
+                method="post"
+              >
+                <button class="ghost-btn" type="submit">완료 취소</button>
+              </form>
+            </div>
+          </div>
+          <a class="inline-link" th:href="@{'/challenges/'+${dare.id}+'/edit'}">복습 일정 수정 →</a>
+        </section>
+        <section class="panel">
+          <span class="eyebrow">RECENT COMPLETIONS</span>
+          <h2>최근 완료 기록</h2>
+          <p th:if="${#lists.isEmpty(recentCompletions)}">아직 완료 기록이 없어요.</p>
+          <div class="override-row" th:each="c:${recentCompletions}">
+            <b th:text="${c.challengeDate}">2026-09-21</b
+            ><span th:text="${#strings.isEmpty(c.note) ? '완료' : c.note}">완료</span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

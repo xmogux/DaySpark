@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 /** Month calendar and the drill-down for one date. Viewable range: 4 years back to 1 year ahead. */
 @Controller
 public class CalendarController {
+
     private final StatsService stats;
     private final Clock clock;
 
@@ -24,8 +25,11 @@ public class CalendarController {
     }
 
     @GetMapping("/calendar")
-    public String month(@RequestParam(required = false) Integer year, @RequestParam(required = false) Integer month,
-                        Model model) {
+    public String month(
+        @RequestParam(required = false) Integer year,
+        @RequestParam(required = false) Integer month,
+        Model model
+    ) {
         LocalDate today = LocalDate.now(clock);
         YearMonth ym = resolveYearMonth(year, month, today);
         CalendarMonth view = stats.calendarMonth(ym, today);

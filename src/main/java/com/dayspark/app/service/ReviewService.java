@@ -5,16 +5,16 @@ import com.dayspark.app.model.Dare;
 import com.dayspark.app.model.ReviewRecord;
 import com.dayspark.app.repository.DareRepository;
 import com.dayspark.app.repository.ReviewRecordRepository;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.stereotype.Service;
-
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReviewService {
+
     private final ReviewRecordRepository records;
     private final DareRepository dares;
     private final Clock clock;
@@ -36,8 +36,16 @@ public class ReviewService {
         for (int i = 0; i < offsets.size(); i++) {
             int offset = offsets.get(i);
             ReviewRecord record = done.get(offset);
-            result.add(new ReviewItem(dare, i + 1, offset, base.plusDays(offset), record != null,
-                    record == null ? null : record.getCompletedAt()));
+            result.add(
+                new ReviewItem(
+                    dare,
+                    i + 1,
+                    offset,
+                    base.plusDays(offset),
+                    record != null,
+                    record == null ? null : record.getCompletedAt()
+                )
+            );
         }
         return result;
     }
@@ -75,7 +83,9 @@ public class ReviewService {
         for (Dare dare : dares.findAllByOrderByActiveDescIdAsc()) {
             if (!dare.isReviewEnabled() || !"STUDY".equals(dare.getCategory())) continue;
             for (ReviewItem item : planFor(dare)) {
-                if (!item.dueDate().isBefore(start) && !item.dueDate().isAfter(end) && !dare.isPausedOn(item.dueDate())) result.add(item);
+                if (
+                    !item.dueDate().isBefore(start) && !item.dueDate().isAfter(end) && !dare.isPausedOn(item.dueDate())
+                ) result.add(item);
             }
         }
         result.sort(Comparator.comparing(ReviewItem::dueDate).thenComparing(i -> i.dare().getId()));
@@ -104,10 +114,24 @@ public class ReviewService {
         records.deleteAllByDareId(dareId);
     }
 
-    public record ReviewItem(Dare dare, int number, int offsetDays, LocalDate dueDate,
-                             boolean completed, LocalDateTime completedAt) {
-        public boolean isOverdue(LocalDate today) { return !completed && dueDate.isBefore(today); }
-        public boolean isToday(LocalDate today) { return !completed && dueDate.equals(today); }
-        public long daysOverdue(LocalDate today) { return isOverdue(today) ? java.time.temporal.ChronoUnit.DAYS.between(dueDate, today) : 0; }
+    public record ReviewItem(
+        Dare dare,
+        int number,
+        int offsetDays,
+        LocalDate dueDate,
+        boolean completed,
+        LocalDateTime completedAt
+    ) {
+        public boolean isOverdue(LocalDate today) {
+            return !completed && dueDate.isBefore(today);
+        }
+
+        public boolean isToday(LocalDate today) {
+            return !completed && dueDate.equals(today);
+        }
+
+        public long daysOverdue(LocalDate today) {
+            return isOverdue(today) ? java.time.temporal.ChronoUnit.DAYS.between(dueDate, today) : 0;
+        }
     }
 }

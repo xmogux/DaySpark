@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 /** The focus-timer page. The timer itself talks to {@link FocusApi}. */
 @Controller
 public class FocusController {
+
     private final DareService dares;
 
     public FocusController(DareService dares) {

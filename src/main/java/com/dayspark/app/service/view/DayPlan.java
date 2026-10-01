@@ -12,11 +12,14 @@ public record DayPlan(LocalDate date, List<Dare> planned, Set<Long> completedIds
     }
 
     public int done() {
-        return (int) planned.stream().filter(d -> completedIds.contains(d.getId())).count();
+        return (int) planned
+            .stream()
+            .filter(d -> completedIds.contains(d.getId()))
+            .count();
     }
 
     /** 0-100; 0 when nothing is planned. */
     public int percent() {
-        return total() == 0 ? 0 : Math.round(done() * 100f / total());
+        return total() == 0 ? 0 : Math.round((done() * 100f) / total());
     }
 }

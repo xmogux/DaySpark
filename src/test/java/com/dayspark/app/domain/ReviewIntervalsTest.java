@@ -22,11 +22,11 @@ class ReviewIntervalsTest {
     @Test
     void emptyOrNonNumericInputIsRejectedWithAUserMessage() {
         assertThatThrownBy(() -> ReviewIntervals.parse(" "))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("하나 이상");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("하나 이상");
         assertThatThrownBy(() -> ReviewIntervals.parse("1, 사흘"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("숫자");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("숫자");
     }
 
     @Test
@@ -39,8 +39,9 @@ class ReviewIntervalsTest {
     @Test
     void atMostTwelveReviews() {
         assertThat(ReviewIntervals.parse("1,2,3,4,5,6,7,8,9,10,11,12").size()).isEqualTo(12);
-        assertThatThrownBy(() -> ReviewIntervals.parse("1,2,3,4,5,6,7,8,9,10,11,12,13"))
-                .hasMessageContaining("최대 12개");
+        assertThatThrownBy(() -> ReviewIntervals.parse("1,2,3,4,5,6,7,8,9,10,11,12,13")).hasMessageContaining(
+            "최대 12개"
+        );
     }
 
     @Test

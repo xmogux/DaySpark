@@ -29,27 +29,31 @@ class DomainRuleTests extends IntegrationTestSupport {
     @Test
     void reviewPlanCreatesOneScheduleForTheStudyUnit() throws Exception {
         LocalDate base = LocalDate.of(2026, 10, 2);
-        mvc.perform(post("/challenges/save")
-                        .param("title", "운영체제 3장")
-                        .param("category", "STUDY")
-                        .param("repeatType", "DAILY")
-                        .param("startDate", base.toString())
-                        .param("reviewEnabled", "true")
-                        .param("reviewBaseDate", base.toString())
-                        .param("reviewIntervals", "1, 3, 7"))
-                .andExpect(flash().attributeExists("success"));
+        mvc.perform(
+            post("/challenges/save")
+                .param("title", "운영체제 3장")
+                .param("category", "STUDY")
+                .param("repeatType", "DAILY")
+                .param("startDate", base.toString())
+                .param("reviewEnabled", "true")
+                .param("reviewBaseDate", base.toString())
+                .param("reviewIntervals", "1, 3, 7")
+        ).andExpect(flash().attributeExists("success"));
         Dare study = dares.findAll().get(0);
         for (LocalDate day = base; !day.isAfter(TODAY); day = day.plusDays(1)) {
             completions.save(new Completion(study, day, "", null, day.atTime(20, 0)));
         }
 
-        MvcResult detail = mvc.perform(get("/challenges/" + study.getId())).andExpect(status().isOk()).andReturn();
+        MvcResult detail = mvc
+            .perform(get("/challenges/" + study.getId()))
+            .andExpect(status().isOk())
+            .andReturn();
         @SuppressWarnings("unchecked")
         List<ReviewItem> plan = (List<ReviewItem>) detail.getModelAndView().getModel().get("reviewPlan");
 
         assertThat(plan)
-                .extracting(ReviewItem::dueDate)
-                .containsExactly(LocalDate.of(2026, 10, 3), LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 9));
+            .extracting(ReviewItem::dueDate)
+            .containsExactly(LocalDate.of(2026, 10, 3), LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 9));
     }
 
     /** Streak rule: a planned day counts when at least one challenge was completed that day. */
@@ -87,10 +91,14 @@ class DomainRuleTests extends IntegrationTestSupport {
     void manualCompletionIsAllowedBelowTheNumericTarget() throws Exception {
         Dare reading = dailyDare("책 읽기", "STUDY");
         String id = reading.getId().toString();
-        mvc.perform(post("/challenges/" + id + "/goals").param("targetValue", "20").param("targetUnit", "페이지"))
-                .andExpect(flash().attributeExists("success"));
-        mvc.perform(post("/challenges/" + id + "/progress").param("amount", "3"))
-                .andExpect(flash().attributeExists("success"));
+        mvc.perform(
+            post("/challenges/" + id + "/goals")
+                .param("targetValue", "20")
+                .param("targetUnit", "페이지")
+        ).andExpect(flash().attributeExists("success"));
+        mvc.perform(post("/challenges/" + id + "/progress").param("amount", "3")).andExpect(
+            flash().attributeExists("success")
+        );
 
         mvc.perform(post("/complete").param("dareId", id)).andExpect(flash().attributeExists("success"));
 

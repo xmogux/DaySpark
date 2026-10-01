@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
  * ({@link #ofStored}); previously the same parsing code lived in two services.
  */
 public final class ReviewIntervals {
+
     public static final int MIN_DAYS = 1;
     public static final int MAX_DAYS = 3650;
     public static final int MAX_COUNT = 12;
@@ -46,7 +47,9 @@ public final class ReviewIntervals {
             values.add(days);
         }
         if (values.isEmpty()) throw new IllegalArgumentException("복습 간격을 하나 이상 입력해주세요.");
-        if (values.size() > MAX_COUNT) throw new IllegalArgumentException("복습 일정은 최대 12개까지 만들 수 있습니다.");
+        if (values.size() > MAX_COUNT) throw new IllegalArgumentException(
+            "복습 일정은 최대 12개까지 만들 수 있습니다."
+        );
         return new ReviewIntervals(List.copyOf(values));
     }
 

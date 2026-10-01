@@ -1,10 +1,10 @@
 package com.dayspark.app.repository;
 
 import com.dayspark.app.model.Completion;
-import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CompletionRepository extends JpaRepository<Completion, Long> {
     Optional<Completion> findByDareIdAndChallengeDate(Long dareId, LocalDate challengeDate);

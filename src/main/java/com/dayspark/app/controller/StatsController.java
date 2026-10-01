@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 /** Weekly and monthly statistics page. */
 @Controller
 public class StatsController {
+
     private final StatsService stats;
     private final Clock clock;
 

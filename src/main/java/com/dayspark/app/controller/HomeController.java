@@ -23,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 /** Today's screen (complete / undo) and the completion history. */
 @Controller
 public class HomeController {
+
     private static final DateTimeFormatter TODAY_LABEL = DateTimeFormatter.ofPattern("M월 d일 EEEE", Locale.KOREAN);
 
     private final StatsService stats;
@@ -32,8 +33,14 @@ public class HomeController {
     private final ReviewService reviews;
     private final Clock clock;
 
-    public HomeController(StatsService stats, CompletionService completions, DareService dares, FocusService focus,
-                          ReviewService reviews, Clock clock) {
+    public HomeController(
+        StatsService stats,
+        CompletionService completions,
+        DareService dares,
+        FocusService focus,
+        ReviewService reviews,
+        Clock clock
+    ) {
         this.stats = stats;
         this.completions = completions;
         this.dares = dares;
@@ -64,8 +71,12 @@ public class HomeController {
     }
 
     @PostMapping("/complete")
-    public String complete(@RequestParam Long dareId, @RequestParam(required = false) String note,
-                           @RequestParam(required = false) MultipartFile image, RedirectAttributes ra) {
+    public String complete(
+        @RequestParam Long dareId,
+        @RequestParam(required = false) String note,
+        @RequestParam(required = false) MultipartFile image,
+        RedirectAttributes ra
+    ) {
         try {
             completions.complete(dares.get(dareId), LocalDate.now(clock), note, image);
             ra.addFlashAttribute("success", "도전을 완료했어요. 오늘의 기록에 저장했습니다 ✨");

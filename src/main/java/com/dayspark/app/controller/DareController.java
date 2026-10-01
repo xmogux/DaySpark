@@ -24,6 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 /** Challenge list, create/edit form, detail page and the actions on a single challenge. */
 @Controller
 public class DareController {
+
     private final DareService dares;
     private final StatsService stats;
     private final PlanningService planning;
@@ -31,8 +32,14 @@ public class DareController {
     private final ReviewService reviews;
     private final Clock clock;
 
-    public DareController(DareService dares, StatsService stats, PlanningService planning, ProgressService progress,
-                          ReviewService reviews, Clock clock) {
+    public DareController(
+        DareService dares,
+        StatsService stats,
+        PlanningService planning,
+        ProgressService progress,
+        ReviewService reviews,
+        Clock clock
+    ) {
         this.dares = dares;
         this.stats = stats;
         this.planning = planning;
@@ -64,7 +71,11 @@ public class DareController {
 
     /** One endpoint for create (no id) and edit (id). On error the typed values are sent back to the form. */
     @PostMapping("/challenges/save")
-    public String save(@RequestParam(required = false) Long id, @ModelAttribute DareRequest form, RedirectAttributes ra) {
+    public String save(
+        @RequestParam(required = false) Long id,
+        @ModelAttribute DareRequest form,
+        RedirectAttributes ra
+    ) {
         try {
             if (id == null) {
                 dares.create(form);
@@ -84,7 +95,10 @@ public class DareController {
     @PostMapping("/challenges/{id}/toggle")
     public String toggle(@PathVariable Long id, RedirectAttributes ra) {
         Dare dare = dares.toggle(id);
-        ra.addFlashAttribute("success", dare.isActive() ? "도전을 다시 활성화했습니다." : "도전을 잠시 쉬도록 설정했습니다.");
+        ra.addFlashAttribute(
+            "success",
+            dare.isActive() ? "도전을 다시 활성화했습니다." : "도전을 잠시 쉬도록 설정했습니다."
+        );
         return "redirect:/challenges";
     }
 
@@ -120,8 +134,13 @@ public class DareController {
     }
 
     @PostMapping("/challenges/{id}/goals")
-    public String goals(@PathVariable Long id, @RequestParam int targetValue, @RequestParam String targetUnit,
-                        @RequestParam(defaultValue = "0") int weeklyTarget, RedirectAttributes ra) {
+    public String goals(
+        @PathVariable Long id,
+        @RequestParam int targetValue,
+        @RequestParam String targetUnit,
+        @RequestParam(defaultValue = "0") int weeklyTarget,
+        RedirectAttributes ra
+    ) {
         try {
             dares.configureGoals(id, targetValue, targetUnit, weeklyTarget);
             ra.addFlashAttribute("success", "수치·주간 목표를 저장했어요.");
@@ -143,9 +162,13 @@ public class DareController {
     }
 
     @PostMapping("/challenges/{id}/schedule")
-    public String schedule(@PathVariable Long id, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                           @RequestParam String mode, @RequestParam(defaultValue = "") String note,
-                           RedirectAttributes ra) {
+    public String schedule(
+        @PathVariable Long id,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+        @RequestParam String mode,
+        @RequestParam(defaultValue = "") String note,
+        RedirectAttributes ra
+    ) {
         try {
             planning.setOverride(dares.get(id), date, mode, note);
             ra.addFlashAttribute("success", "해당 날짜의 일정을 반영했어요.");
@@ -157,10 +180,13 @@ public class DareController {
 
     /** Toggles one review. {@code returnTo} sends the user back to where the button was pressed. */
     @PostMapping("/challenges/{id}/reviews/{offset}/toggle")
-    public String toggleReview(@PathVariable Long id, @PathVariable int offset,
-                               @RequestParam(defaultValue = "detail") String returnTo,
-                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                               RedirectAttributes ra) {
+    public String toggleReview(
+        @PathVariable Long id,
+        @PathVariable int offset,
+        @RequestParam(defaultValue = "detail") String returnTo,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+        RedirectAttributes ra
+    ) {
         try {
             boolean completed = reviews.toggle(dares.get(id), offset);
             ra.addFlashAttribute("success", completed ? "복습을 완료로 표시했어요." : "복습 완료 표시를 취소했어요.");

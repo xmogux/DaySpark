@@ -9,9 +9,10 @@ import java.util.List;
 
 /** Calendar drill-down for a single date. */
 public record DayDetail(
-        LocalDate date,
-        List<Dare> planned,
-        List<Completion> completed,
-        List<ReviewItem> reviews,
-        List<FocusSession> sessions,
-        int focusMinutes) {}
+    LocalDate date,
+    List<Dare> planned,
+    List<Completion> completed,
+    List<ReviewItem> reviews,
+    List<FocusSession> sessions,
+    int focusMinutes
+) {}

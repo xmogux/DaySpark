@@ -1,27 +1,57 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<body>
-<!--
+  <body>
+    <!--
   Shared top navigation. Usage in a page:
     <header th:replace="~{fragments/layout :: topbar('calendar')}"></header>
   active: home | challenges | calendar | stats | focus | history | '' (none)
 -->
-<header th:fragment="topbar(active)" class="topbar">
-  <a class="brand" th:href="@{/}"><span class="brand-mark">✦</span><span>DaySpark</span></a>
-  <nav aria-label="주 메뉴">
-    <a class="nav-link" th:href="@{/}" th:classappend="${active == 'home'} ? 'active'"
-       th:aria-current="${active == 'home'} ? 'page'">오늘</a>
-    <a class="nav-link" th:href="@{/challenges}" th:classappend="${active == 'challenges'} ? 'active'"
-       th:aria-current="${active == 'challenges'} ? 'page'">도전</a>
-    <a class="nav-link" th:href="@{/calendar}" th:classappend="${active == 'calendar'} ? 'active'"
-       th:aria-current="${active == 'calendar'} ? 'page'">달력</a>
-    <a class="nav-link" th:href="@{/stats}" th:classappend="${active == 'stats'} ? 'active'"
-       th:aria-current="${active == 'stats'} ? 'page'">통계</a>
-    <a class="nav-link" th:href="@{/focus}" th:classappend="${active == 'focus'} ? 'active'"
-       th:aria-current="${active == 'focus'} ? 'page'">집중 타이머</a>
-    <a class="nav-link" th:href="@{/history}" th:classappend="${active == 'history'} ? 'active'"
-       th:aria-current="${active == 'history'} ? 'page'">기록</a>
-  </nav>
-</header>
-</body>
+    <header th:fragment="topbar(active)" class="topbar">
+      <a class="brand" th:href="@{/}"><span class="brand-mark">✦</span><span>DaySpark</span></a>
+      <nav aria-label="주 메뉴">
+        <a
+          class="nav-link"
+          th:href="@{/}"
+          th:classappend="${active == 'home'} ? 'active'"
+          th:aria-current="${active == 'home'} ? 'page'"
+          >오늘</a
+        >
+        <a
+          class="nav-link"
+          th:href="@{/challenges}"
+          th:classappend="${active == 'challenges'} ? 'active'"
+          th:aria-current="${active == 'challenges'} ? 'page'"
+          >도전</a
+        >
+        <a
+          class="nav-link"
+          th:href="@{/calendar}"
+          th:classappend="${active == 'calendar'} ? 'active'"
+          th:aria-current="${active == 'calendar'} ? 'page'"
+          >달력</a
+        >
+        <a
+          class="nav-link"
+          th:href="@{/stats}"
+          th:classappend="${active == 'stats'} ? 'active'"
+          th:aria-current="${active == 'stats'} ? 'page'"
+          >통계</a
+        >
+        <a
+          class="nav-link"
+          th:href="@{/focus}"
+          th:classappend="${active == 'focus'} ? 'active'"
+          th:aria-current="${active == 'focus'} ? 'page'"
+          >집중 타이머</a
+        >
+        <a
+          class="nav-link"
+          th:href="@{/history}"
+          th:classappend="${active == 'history'} ? 'active'"
+          th:aria-current="${active == 'history'} ? 'page'"
+          >기록</a
+        >
+      </nav>
+    </header>
+  </body>
 </html>

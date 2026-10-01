@@ -3,10 +3,6 @@ package com.dayspark.app.service;
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.repository.CompletionRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -15,9 +11,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class CompletionService {
+
     public static final String AUTO_COMPLETE_NOTE = "목표량 달성으로 자동 완료";
 
     private final CompletionRepository completionRepository;
@@ -25,8 +25,12 @@ public class CompletionService {
     private final ImageStorage images;
     private final Clock clock;
 
-    public CompletionService(CompletionRepository completionRepository, PlanningService planning,
-                             ImageStorage images, Clock clock) {
+    public CompletionService(
+        CompletionRepository completionRepository,
+        PlanningService planning,
+        ImageStorage images,
+        Clock clock
+    ) {
         this.completionRepository = completionRepository;
         this.planning = planning;
         this.images = images;
@@ -65,8 +69,9 @@ public class CompletionService {
     @Transactional
     public Optional<Completion> autoComplete(Dare dare, LocalDate date) {
         if (!planning.isScheduled(dare, date) || find(dare.getId(), date).isPresent()) return Optional.empty();
-        return Optional.of(completionRepository.save(
-                new Completion(dare, date, AUTO_COMPLETE_NOTE, null, LocalDateTime.now(clock))));
+        return Optional.of(
+            completionRepository.save(new Completion(dare, date, AUTO_COMPLETE_NOTE, null, LocalDateTime.now(clock)))
+        );
     }
 
     /**
@@ -75,8 +80,9 @@ public class CompletionService {
      */
     @Transactional
     public void undo(Long dareId, LocalDate date) {
-        Completion completion = find(dareId, date)
-                .orElseThrow(() -> new IllegalArgumentException("취소할 완료 기록이 없습니다."));
+        Completion completion = find(dareId, date).orElseThrow(() ->
+            new IllegalArgumentException("취소할 완료 기록이 없습니다.")
+        );
         completionRepository.delete(completion);
         images.deleteQuietly(completion.getImagePath());
     }
@@ -92,5 +98,4 @@ public class CompletionService {
     public long countBetween(LocalDate start, LocalDate end) {
         return completionRepository.countByChallengeDateBetween(start, end);
     }
-
 }

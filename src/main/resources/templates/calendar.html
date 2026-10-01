@@ -1,103 +1,131 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>달력 — DaySpark</title>
-  <link rel="stylesheet" th:href="@{/css/app.css(v=56)}" href="/css/app.css?v=56">
-</head>
-<body class="calendar-page">
-<div class="page-shell">
-  <header th:replace="~{fragments/layout :: topbar('calendar')}"></header>
-  <main>
-    <div class="calendar-intro">
-      <div>
-        <span class="eyebrow">YOUR DAILY MOMENTUM</span>
-        <h1>하루하루, 쌓이는 기록.</h1>
-        <p>목표를 해낸 날과 집중한 시간을 한눈에 확인하세요.</p>
-      </div>
-      <a class="calendar-jump" href="/calendar">이번 달로 <span aria-hidden="true">↗</span></a>
-    </div>
-
-    <section class="calendar-v54" aria-label="월간 활동 달력">
-      <div class="calendar-v54-toolbar">
-        <div class="calendar-v54-month">
-          <span class="eyebrow">MONTHLY OVERVIEW</span>
-          <h2 th:text="${monthLabel}">2026년 9월</h2>
-        </div>
-        <div class="calendar-v54-navigation" aria-label="달력 월 이동">
-          <a th:href="@{/calendar(year=${prev.year},month=${prev.monthValue})}" href="#" aria-label="이전 달">←</a>
-          <a th:href="@{/calendar(year=${next.year},month=${next.monthValue})}" href="#" aria-label="다음 달">→</a>
-        </div>
-      </div>
-
-      <div class="calendar-v54-overview">
-        <div class="calendar-v54-metric">
-          <span class="metric-icon success-icon" aria-hidden="true">✓</span>
-          <div><span class="metric-title">완료한 도전</span>
-            <strong><span th:text="${monthCompletionCount}">12</span><small>회</small></strong>
-            <span class="metric-note" th:text="${monthSummaryNote}">이번 달 · 오늘까지</span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>달력 — DaySpark</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=56)}" href="/css/app.css?v=56" />
+  </head>
+  <body class="calendar-page">
+    <div class="page-shell">
+      <header th:replace="~{fragments/layout :: topbar('calendar')}"></header>
+      <main>
+        <div class="calendar-intro">
+          <div>
+            <span class="eyebrow">YOUR DAILY MOMENTUM</span>
+            <h1>하루하루, 쌓이는 기록.</h1>
+            <p>목표를 해낸 날과 집중한 시간을 한눈에 확인하세요.</p>
           </div>
+          <a class="calendar-jump" href="/calendar">이번 달로 <span aria-hidden="true">↗</span></a>
         </div>
-        <div class="calendar-v54-metric">
-          <span class="metric-icon rate-icon" aria-hidden="true">↗</span>
-          <div><span class="metric-title">도전 달성률</span>
-            <strong th:if="${monthHasElapsed}"><span th:text="${monthRate}">68</span><small>%</small></strong>
-            <strong th:unless="${monthHasElapsed}">—</strong>
-            <span class="metric-note" th:text="${monthHasElapsed} ? ${monthCompletionCount} + ' / ' + ${monthPlannedCount} + '회' : '아직 기록 없음'">12 / 18회</span>
-          </div>
-        </div>
-        <div class="calendar-v54-metric">
-          <span class="metric-icon focus-icon" aria-hidden="true">◷</span>
-          <div><span class="metric-title">누적 집중 시간</span>
-            <strong><span th:text="${monthFocusMinutes}">250</span><small>분</small></strong>
-            <span class="metric-note"><b th:text="${monthFocusRounds}">10</b>회 집중 완료</span>
-          </div>
-        </div>
-      </div>
 
-      <div class="calendar-v54-key" aria-label="상태 표시 안내">
-        <span><i class="key-dot key-done" aria-hidden="true"></i>완료</span>
-        <span><i class="key-dot key-partial" aria-hidden="true"></i>일부 완료</span>
-        <span><i class="key-dot key-plan" aria-hidden="true"></i>예정 / 미완료</span><span><b aria-hidden="true">↻</b> 복습 일정</span>
-      </div>
-
-      <div class="calendar-v54-weekdays" aria-hidden="true">
-        <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
-      </div>
-      <div class="calendar-v54-grid">
-        <a class="calendar-v54-day" th:each="d : ${days}"
-           th:href="@{/calendar/day(date=${d.date})}"
-           th:classappend="${(!d.inMonth ? ' is-outside ' : '') + (d.today ? ' is-today ' : '') + (d.inMonth && d.planned > 0 && !d.future && d.completed >= d.planned ? ' is-complete ' : '') + (d.inMonth && d.completed > 0 && d.completed < d.planned ? ' is-partial ' : '')}"
-           th:attr="aria-label=${d.date.toString() + ', 완료 ' + d.completed + '개, 예정 ' + d.planned + '개, 복습 ' + d.reviewPlanned + '개'}"
-           href="#">
-          <div class="calendar-v54-day-top">
-            <span class="calendar-v54-day-number" th:text="${d.date.dayOfMonth}">7</span>
-            <span class="calendar-v54-today-tag" th:if="${d.today}">오늘</span>
-            <span class="calendar-v54-day-meta">
-              <span class="calendar-v54-review" th:if="${d.reviewPlanned > 0}" th:classappend="${d.reviewCompleted >= d.reviewPlanned} ? ' is-done' : ''" th:text="'↻ 복습 ' + ${d.reviewCompleted} + '/' + ${d.reviewPlanned}">↻ 복습 0/1</span>
-              <span class="calendar-v54-focus" th:if="${focusMap[d.date] != null && focusMap[d.date] > 0}" th:text="'◷ ' + ${focusMap[d.date]} + '분'">◷ 25분</span>
-            </span>
+        <section class="calendar-v54" aria-label="월간 활동 달력">
+          <div class="calendar-v54-toolbar">
+            <div class="calendar-v54-month">
+              <span class="eyebrow">MONTHLY OVERVIEW</span>
+              <h2 th:text="${monthLabel}">2026년 9월</h2>
+            </div>
+            <div class="calendar-v54-navigation" aria-label="달력 월 이동">
+              <a th:href="@{/calendar(year=${prev.year},month=${prev.monthValue})}" href="#" aria-label="이전 달">←</a>
+              <a th:href="@{/calendar(year=${next.year},month=${next.monthValue})}" href="#" aria-label="다음 달">→</a>
+            </div>
           </div>
-          <div class="calendar-v54-day-bottom" th:if="${d.inMonth}">
-            <th:block th:if="${d.planned > 0}">
-              <span class="calendar-v54-day-status" th:if="${d.future}" th:text="'예정 ' + ${d.planned} + '개'">예정 2개</span>
-              <span class="calendar-v54-day-status" th:unless="${d.future}"
+
+          <div class="calendar-v54-overview">
+            <div class="calendar-v54-metric">
+              <span class="metric-icon success-icon" aria-hidden="true">✓</span>
+              <div>
+                <span class="metric-title">완료한 도전</span>
+                <strong><span th:text="${monthCompletionCount}">12</span><small>회</small></strong>
+                <span class="metric-note" th:text="${monthSummaryNote}">이번 달 · 오늘까지</span>
+              </div>
+            </div>
+            <div class="calendar-v54-metric">
+              <span class="metric-icon rate-icon" aria-hidden="true">↗</span>
+              <div>
+                <span class="metric-title">도전 달성률</span>
+                <strong th:if="${monthHasElapsed}"><span th:text="${monthRate}">68</span><small>%</small></strong>
+                <strong th:unless="${monthHasElapsed}">—</strong>
+                <span
+                  class="metric-note"
+                  th:text="${monthHasElapsed} ? ${monthCompletionCount} + ' / ' + ${monthPlannedCount} + '회' : '아직 기록 없음'"
+                  >12 / 18회</span
+                >
+              </div>
+            </div>
+            <div class="calendar-v54-metric">
+              <span class="metric-icon focus-icon" aria-hidden="true">◷</span>
+              <div>
+                <span class="metric-title">누적 집중 시간</span>
+                <strong><span th:text="${monthFocusMinutes}">250</span><small>분</small></strong>
+                <span class="metric-note"><b th:text="${monthFocusRounds}">10</b>회 집중 완료</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="calendar-v54-key" aria-label="상태 표시 안내">
+            <span><i class="key-dot key-done" aria-hidden="true"></i>완료</span>
+            <span><i class="key-dot key-partial" aria-hidden="true"></i>일부 완료</span>
+            <span><i class="key-dot key-plan" aria-hidden="true"></i>예정 / 미완료</span
+            ><span><b aria-hidden="true">↻</b> 복습 일정</span>
+          </div>
+
+          <div class="calendar-v54-weekdays" aria-hidden="true">
+            <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
+          </div>
+          <div class="calendar-v54-grid">
+            <a
+              class="calendar-v54-day"
+              th:each="d : ${days}"
+              th:href="@{/calendar/day(date=${d.date})}"
+              th:classappend="${(!d.inMonth ? ' is-outside ' : '') + (d.today ? ' is-today ' : '') + (d.inMonth && d.planned > 0 && !d.future && d.completed >= d.planned ? ' is-complete ' : '') + (d.inMonth && d.completed > 0 && d.completed < d.planned ? ' is-partial ' : '')}"
+              th:attr="aria-label=${d.date.toString() + ', 완료 ' + d.completed + '개, 예정 ' + d.planned + '개, 복습 ' + d.reviewPlanned + '개'}"
+              href="#"
+            >
+              <div class="calendar-v54-day-top">
+                <span class="calendar-v54-day-number" th:text="${d.date.dayOfMonth}">7</span>
+                <span class="calendar-v54-today-tag" th:if="${d.today}">오늘</span>
+                <span class="calendar-v54-day-meta">
+                  <span
+                    class="calendar-v54-review"
+                    th:if="${d.reviewPlanned > 0}"
+                    th:classappend="${d.reviewCompleted >= d.reviewPlanned} ? ' is-done' : ''"
+                    th:text="'↻ 복습 ' + ${d.reviewCompleted} + '/' + ${d.reviewPlanned}"
+                    >↻ 복습 0/1</span
+                  >
+                  <span
+                    class="calendar-v54-focus"
+                    th:if="${focusMap[d.date] != null && focusMap[d.date] > 0}"
+                    th:text="'◷ ' + ${focusMap[d.date]} + '분'"
+                    >◷ 25분</span
+                  >
+                </span>
+              </div>
+              <div class="calendar-v54-day-bottom" th:if="${d.inMonth}">
+                <th:block th:if="${d.planned > 0}">
+                  <span class="calendar-v54-day-status" th:if="${d.future}" th:text="'예정 ' + ${d.planned} + '개'"
+                    >예정 2개</span
+                  >
+                  <span
+                    class="calendar-v54-day-status"
+                    th:unless="${d.future}"
                     th:classappend="${d.completed >= d.planned} ? ' state-complete' : (${d.completed > 0} ? ' state-partial' : ' state-unfinished')"
-                    th:text="${d.completed >= d.planned} ? '모두 완료' : (${d.completed > 0} ? '진행 중' : (${d.today} ? '진행 전' : '미완료'))">진행 중</span>
-              <span class="calendar-v54-count" th:text="${d.completed} + '/' + ${d.planned}">1/3</span>
-              <span class="calendar-v54-track" th:if="${!d.future}">
-                <span th:style="'width:' + ${d.percentage} + '%'" class="calendar-v54-track-fill"></span>
-              </span>
-              <span class="calendar-v54-track is-upcoming" th:if="${d.future}"></span>
-            </th:block>
-            <span th:if="${d.planned == 0}" class="calendar-v54-no-plan">일정 없음</span>
+                    th:text="${d.completed >= d.planned} ? '모두 완료' : (${d.completed > 0} ? '진행 중' : (${d.today} ? '진행 전' : '미완료'))"
+                    >진행 중</span
+                  >
+                  <span class="calendar-v54-count" th:text="${d.completed} + '/' + ${d.planned}">1/3</span>
+                  <span class="calendar-v54-track" th:if="${!d.future}">
+                    <span th:style="'width:' + ${d.percentage} + '%'" class="calendar-v54-track-fill"></span>
+                  </span>
+                  <span class="calendar-v54-track is-upcoming" th:if="${d.future}"></span>
+                </th:block>
+                <span th:if="${d.planned == 0}" class="calendar-v54-no-plan">일정 없음</span>
+              </div>
+            </a>
           </div>
-        </a>
-      </div>
-      <p class="calendar-v54-footnote">날짜를 클릭하면 완료한 도전과 포모도로 집중 기록을 자세히 볼 수 있어요.</p>
-    </section>
-  </main>
-</div>
-</body>
+          <p class="calendar-v54-footnote">날짜를 클릭하면 완료한 도전과 포모도로 집중 기록을 자세히 볼 수 있어요.</p>
+        </section>
+      </main>
+    </div>
+  </body>
 </html>

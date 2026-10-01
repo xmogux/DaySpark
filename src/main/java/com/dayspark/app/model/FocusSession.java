@@ -2,7 +2,6 @@ package com.dayspark.app.model;
 
 import com.dayspark.app.domain.FocusStatus;
 import jakarta.persistence.*;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -11,6 +10,7 @@ import java.time.ZoneId;
 @Entity
 @Table(name = "focus_sessions")
 public class FocusSession {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -44,18 +44,44 @@ public class FocusSession {
         this.startedAt = now;
     }
 
-    public Long getId() { return id; }
-    public Dare getDare() { return dare; }
-    public Instant getStartedAt() { return startedAt; }
-    public Instant getPausedAt() { return pausedAt; }
-    public Instant getEndedAt() { return endedAt; }
-    public long getPausedMillis() { return pausedMillis; }
-    public int getPlannedMinutes() { return plannedMinutes; }
-    public String getStatus() { return status; }
-    public LocalDate getCompletedDay() { return completedDay; }
+    public Long getId() {
+        return id;
+    }
+
+    public Dare getDare() {
+        return dare;
+    }
+
+    public Instant getStartedAt() {
+        return startedAt;
+    }
+
+    public Instant getPausedAt() {
+        return pausedAt;
+    }
+
+    public Instant getEndedAt() {
+        return endedAt;
+    }
+
+    public long getPausedMillis() {
+        return pausedMillis;
+    }
+
+    public int getPlannedMinutes() {
+        return plannedMinutes;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public LocalDate getCompletedDay() {
+        return completedDay;
+    }
 
     public long elapsedMillis(Instant now) {
-        Instant stop = FocusStatus.PAUSED.name().equals(status) ? pausedAt : (endedAt != null ? endedAt : now);
+        Instant stop = FocusStatus.PAUSED.name().equals(status) ? pausedAt : endedAt != null ? endedAt : now;
         return Math.max(0, Duration.between(startedAt, stop).toMillis() - pausedMillis);
     }
 
@@ -72,13 +98,17 @@ public class FocusSession {
     }
 
     public void pause(Instant now) {
-        if (!FocusStatus.RUNNING.name().equals(status)) throw new IllegalStateException("진행 중인 타이머만 일시정지할 수 있습니다.");
+        if (!FocusStatus.RUNNING.name().equals(status)) throw new IllegalStateException(
+            "진행 중인 타이머만 일시정지할 수 있습니다."
+        );
         pausedAt = now;
         status = FocusStatus.PAUSED.name();
     }
 
     public void resume(Instant now) {
-        if (!FocusStatus.PAUSED.name().equals(status)) throw new IllegalStateException("정지된 타이머만 재개할 수 있습니다.");
+        if (!FocusStatus.PAUSED.name().equals(status)) throw new IllegalStateException(
+            "정지된 타이머만 재개할 수 있습니다."
+        );
         pausedMillis += Math.max(0, Duration.between(pausedAt, now).toMillis());
         pausedAt = null;
         status = FocusStatus.RUNNING.name();
@@ -99,7 +129,9 @@ public class FocusSession {
     }
 
     public void cancel(Instant now) {
-        if (FocusStatus.COMPLETED.name().equals(status)) throw new IllegalStateException("완료된 기록은 취소할 수 없습니다.");
+        if (FocusStatus.COMPLETED.name().equals(status)) throw new IllegalStateException(
+            "완료된 기록은 취소할 수 없습니다."
+        );
         status = FocusStatus.CANCELLED.name();
         endedAt = now;
     }

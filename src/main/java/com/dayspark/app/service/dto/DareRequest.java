@@ -15,6 +15,7 @@ import org.springframework.format.annotation.DateTimeFormat.ISO;
  * done by {@code DareService}, which owns the domain rules.
  */
 public class DareRequest implements Serializable {
+
     private String title = "";
     private String description = "";
     private String category = "LIFE";
@@ -68,45 +69,115 @@ public class DareRequest implements Serializable {
         return request;
     }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public String getTitle() {
+        return title;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getDescription() {
+        return description;
+    }
 
-    public int getMinutes() { return minutes; }
-    public void setMinutes(int minutes) { this.minutes = minutes; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public String getRepeatType() { return repeatType; }
-    public void setRepeatType(String repeatType) { this.repeatType = repeatType; }
+    public String getCategory() {
+        return category;
+    }
 
-    public List<String> getRepeatDays() { return repeatDays; }
-    public void setRepeatDays(List<String> repeatDays) { this.repeatDays = repeatDays == null ? new ArrayList<>() : repeatDays; }
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
-    public LocalDate getStartDate() { return startDate; }
-    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+    public int getMinutes() {
+        return minutes;
+    }
 
-    public LocalDate getEndDate() { return endDate; }
-    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+    public void setMinutes(int minutes) {
+        this.minutes = minutes;
+    }
 
-    public int getTargetValue() { return targetValue; }
-    public void setTargetValue(int targetValue) { this.targetValue = targetValue; }
+    public String getRepeatType() {
+        return repeatType;
+    }
 
-    public String getTargetUnit() { return targetUnit; }
-    public void setTargetUnit(String targetUnit) { this.targetUnit = targetUnit; }
+    public void setRepeatType(String repeatType) {
+        this.repeatType = repeatType;
+    }
 
-    public int getWeeklyTarget() { return weeklyTarget; }
-    public void setWeeklyTarget(int weeklyTarget) { this.weeklyTarget = weeklyTarget; }
+    public List<String> getRepeatDays() {
+        return repeatDays;
+    }
 
-    public boolean isReviewEnabled() { return reviewEnabled; }
-    public void setReviewEnabled(boolean reviewEnabled) { this.reviewEnabled = reviewEnabled; }
+    public void setRepeatDays(List<String> repeatDays) {
+        this.repeatDays = repeatDays == null ? new ArrayList<>() : repeatDays;
+    }
 
-    public LocalDate getReviewBaseDate() { return reviewBaseDate; }
-    public void setReviewBaseDate(LocalDate reviewBaseDate) { this.reviewBaseDate = reviewBaseDate; }
+    public LocalDate getStartDate() {
+        return startDate;
+    }
 
-    public String getReviewIntervals() { return reviewIntervals; }
-    public void setReviewIntervals(String reviewIntervals) { this.reviewIntervals = reviewIntervals; }
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public int getTargetValue() {
+        return targetValue;
+    }
+
+    public void setTargetValue(int targetValue) {
+        this.targetValue = targetValue;
+    }
+
+    public String getTargetUnit() {
+        return targetUnit;
+    }
+
+    public void setTargetUnit(String targetUnit) {
+        this.targetUnit = targetUnit;
+    }
+
+    public int getWeeklyTarget() {
+        return weeklyTarget;
+    }
+
+    public void setWeeklyTarget(int weeklyTarget) {
+        this.weeklyTarget = weeklyTarget;
+    }
+
+    public boolean isReviewEnabled() {
+        return reviewEnabled;
+    }
+
+    public void setReviewEnabled(boolean reviewEnabled) {
+        this.reviewEnabled = reviewEnabled;
+    }
+
+    public LocalDate getReviewBaseDate() {
+        return reviewBaseDate;
+    }
+
+    public void setReviewBaseDate(LocalDate reviewBaseDate) {
+        this.reviewBaseDate = reviewBaseDate;
+    }
+
+    public String getReviewIntervals() {
+        return reviewIntervals;
+    }
+
+    public void setReviewIntervals(String reviewIntervals) {
+        this.reviewIntervals = reviewIntervals;
+    }
 }

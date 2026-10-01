@@ -1,23 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DaySpark 오류</title>
-  <link rel="stylesheet" th:href="@{/css/app.css(v=56)}">
-</head>
-<body>
-<div class="page-shell">
-  <header th:replace="~{fragments/layout :: topbar('')}"></header>
-  <main>
-    <section class="empty-card large-empty">
-      <div th:text="${status} ?: '!'">400</div>
-      <h3 th:text="${title} ?: '요청을 처리할 수 없습니다'">요청을 처리할 수 없습니다</h3>
-      <p th:text="${message} ?: '잠시 후 다시 시도해주세요.'">입력값이나 주소가 올바르지 않습니다.</p>
-      <a class="secondary-btn" href="/">오늘 화면으로</a>
-      <a class="ghost-btn" href="/challenges">도전 관리</a>
-    </section>
-  </main>
-</div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DaySpark 오류</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=56)}" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header th:replace="~{fragments/layout :: topbar('')}"></header>
+      <main>
+        <section class="empty-card large-empty">
+          <div th:text="${status} ?: '!'">400</div>
+          <h3 th:text="${title} ?: '요청을 처리할 수 없습니다'">요청을 처리할 수 없습니다</h3>
+          <p th:text="${message} ?: '잠시 후 다시 시도해주세요.'">입력값이나 주소가 올바르지 않습니다.</p>
+          <a class="secondary-btn" href="/">오늘 화면으로</a>
+          <a class="ghost-btn" href="/challenges">도전 관리</a>
+        </section>
+      </main>
+    </div>
+  </body>
 </html>
