@@ -5,7 +5,7 @@ import com.dayspark.app.model.Dare;
 import com.dayspark.app.model.ScheduleException;
 import com.dayspark.app.repository.CompletionRepository;
 import com.dayspark.app.repository.ScheduleExceptionRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;

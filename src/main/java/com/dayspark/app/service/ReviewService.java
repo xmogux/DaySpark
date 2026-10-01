@@ -5,7 +5,7 @@ import com.dayspark.app.model.Dare;
 import com.dayspark.app.model.ReviewRecord;
 import com.dayspark.app.repository.DareRepository;
 import com.dayspark.app.repository.ReviewRecordRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;

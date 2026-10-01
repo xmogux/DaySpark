@@ -4,7 +4,7 @@ import com.dayspark.app.domain.FocusStatus;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.model.FocusSession;
 import com.dayspark.app.repository.FocusSessionRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;

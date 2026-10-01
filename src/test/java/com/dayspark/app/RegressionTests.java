@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.service.ReviewService.ReviewItem;
+import com.dayspark.app.service.view.DailyStat;
 import com.dayspark.app.support.DaySparkIntegrationTest;
 import com.dayspark.app.support.IntegrationTestSupport;
 import java.nio.charset.StandardCharsets;
@@ -56,11 +57,17 @@ class RegressionTests extends IntegrationTestSupport {
                         .param("startDate", monday.toString()))
                 .andExpect(status().is3xxRedirection());
 
-        mvc.perform(get("/stats"))
+        MvcResult stats = mvc.perform(get("/stats"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("weekRate", 100L))
                 .andExpect(model().attribute("monthRate", 100L))
-                .andExpect(model().attribute("weekDone", 6L));
+                .andExpect(model().attribute("weekDone", 6L))
+                .andReturn();
+        // Rates are also capped at 100 for display, so check the raw counts: Mon-Wed each plan 2 of 2.
+        @SuppressWarnings("unchecked")
+        List<DailyStat> bars = (List<DailyStat>) stats.getModelAndView().getModel().get("weekBars");
+        assertThat(bars.subList(0, 3)).extracting(DailyStat::planned).containsExactly(2L, 2L, 2L);
+        assertThat(bars.subList(0, 3)).extracting(DailyStat::completed).containsExactly(2L, 2L, 2L);
     }
 
     /**
