@@ -1,5 +1,6 @@
 package com.dayspark.app.service;
 
+import com.dayspark.app.domain.ReviewIntervals;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.model.ReviewRecord;
 import com.dayspark.app.repository.DareRepository;
@@ -24,37 +25,10 @@ public class ReviewService {
         this.clock = clock;
     }
 
-    public List<Integer> parseIntervals(String raw) {
-        if (raw == null || raw.isBlank()) return List.of();
-        String normalized = raw.trim().replace('，', ',');
-        String[] parts = normalized.split("[,\\s]+");
-        SortedSet<Integer> values = new TreeSet<>();
-        for (String part : parts) {
-            if (part.isBlank()) continue;
-            final int days;
-            try {
-                days = Integer.parseInt(part);
-            } catch (NumberFormatException ex) {
-                throw new IllegalArgumentException("복습 간격은 1, 3, 7처럼 날짜 수(숫자)로 입력해주세요.");
-            }
-            if (days < 1 || days > 3650) {
-                throw new IllegalArgumentException("복습 간격은 1일~3650일 사이로 설정해주세요.");
-            }
-            values.add(days);
-        }
-        if (values.isEmpty()) throw new IllegalArgumentException("복습 간격을 하나 이상 입력해주세요.");
-        if (values.size() > 12) throw new IllegalArgumentException("복습 일정은 최대 12개까지 만들 수 있습니다.");
-        return List.copyOf(values);
-    }
-
-    public String normalizeIntervals(String raw) {
-        return parseIntervals(raw).stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse("");
-    }
-
     public List<ReviewItem> planFor(Dare dare) {
         if (!dare.isReviewEnabled() || !"STUDY".equals(dare.getCategory())) return List.of();
         LocalDate base = dare.getReviewBaseDate() == null ? dare.getStartDate() : dare.getReviewBaseDate();
-        List<Integer> offsets = parseIntervals(dare.getReviewIntervals());
+        List<Integer> offsets = ReviewIntervals.ofStored(dare.getReviewIntervals()).offsets();
         Map<Integer, ReviewRecord> done = new HashMap<>();
         records.findByDareIdOrderByOffsetDaysAsc(dare.getId()).forEach(r -> done.put(r.getOffsetDays(), r));
 
@@ -113,7 +87,7 @@ public class ReviewService {
         if (!dare.isReviewEnabled() || !"STUDY".equals(dare.getCategory())) {
             throw new IllegalArgumentException("복습 플랜이 설정된 공부 도전이 아닙니다.");
         }
-        if (!parseIntervals(dare.getReviewIntervals()).contains(offsetDays)) {
+        if (!ReviewIntervals.ofStored(dare.getReviewIntervals()).contains(offsetDays)) {
             throw new IllegalArgumentException("현재 복습 플랜에 없는 일정입니다.");
         }
         Optional<ReviewRecord> existing = records.findByDareIdAndOffsetDays(dare.getId(), offsetDays);

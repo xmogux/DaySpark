@@ -2,6 +2,7 @@ package com.dayspark.app.service;
 
 import com.dayspark.app.domain.DareCategory;
 import com.dayspark.app.domain.RepeatType;
+import com.dayspark.app.domain.ReviewIntervals;
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.repository.CompletionRepository;
@@ -180,20 +181,7 @@ public class DareService {
         if (!enabled || !"STUDY".equals(DareCategory.parse(category).name())) return "";
         LocalDate base = baseDate == null ? startDate : baseDate;
         if (base == null) throw new IllegalArgumentException("복습 기준일을 입력해주세요.");
-        if (intervals == null || intervals.isBlank()) throw new IllegalArgumentException("복습 간격을 하나 이상 입력해주세요.");
-        String normalized = intervals.trim().replace('，', ',');
-        java.util.SortedSet<Integer> values = new java.util.TreeSet<>();
-        for (String part : normalized.split("[,\\s]+")) {
-            if (part.isBlank()) continue;
-            int days;
-            try { days = Integer.parseInt(part); }
-            catch (NumberFormatException ex) { throw new IllegalArgumentException("복습 간격은 1, 3, 7처럼 날짜 수(숫자)로 입력해주세요."); }
-            if (days < 1 || days > 3650) throw new IllegalArgumentException("복습 간격은 1일~3650일 사이로 설정해주세요.");
-            values.add(days);
-        }
-        if (values.isEmpty()) throw new IllegalArgumentException("복습 간격을 하나 이상 입력해주세요.");
-        if (values.size() > 12) throw new IllegalArgumentException("복습 일정은 최대 12개까지 만들 수 있습니다.");
-        return values.stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse("");
+        return ReviewIntervals.parse(intervals).normalized();
     }
 
     public Dare toggle(Long id) {

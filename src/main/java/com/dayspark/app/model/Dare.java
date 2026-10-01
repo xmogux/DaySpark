@@ -2,6 +2,7 @@ package com.dayspark.app.model;
 
 import com.dayspark.app.domain.DareCategory;
 import com.dayspark.app.domain.RepeatType;
+import com.dayspark.app.domain.ReviewIntervals;
 import jakarta.persistence.*;
 
 import java.time.DayOfWeek;
@@ -159,8 +160,7 @@ public class Dare {
     public LocalDate getReviewBaseDate() { return reviewBaseDate; }
     public String getReviewIntervals() { return reviewIntervals; }
     public int getReviewCount() {
-        if (!reviewEnabled || reviewIntervals == null || reviewIntervals.isBlank()) return 0;
-        return (int) Arrays.stream(reviewIntervals.split(",")).map(String::trim).filter(v -> !v.isBlank()).count();
+        return reviewEnabled ? ReviewIntervals.ofStored(reviewIntervals).size() : 0;
     }
     public Long getId() { return id; }
     public String getTitle() { return title; }
