@@ -4,16 +4,11 @@ import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.repository.CompletionRepository;
 import com.dayspark.app.repository.DareRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,24 +16,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 public class CompletionService {
     private final CompletionRepository completionRepository;
     private final DareRepository dareRepository;
-    private final Path uploadRoot;
     private final PlanningService planning;
+    private final ImageStorage images;
     private final Clock clock;
 
-    public CompletionService(CompletionRepository completionRepository, DareRepository dareRepository, PlanningService planning,
-                             Clock clock, @Value("${app.upload-dir:uploads}") String uploadDir) throws IOException {
+    public CompletionService(CompletionRepository completionRepository, DareRepository dareRepository,
+                             PlanningService planning, ImageStorage images, Clock clock) {
         this.completionRepository = completionRepository;
         this.dareRepository = dareRepository;
         this.planning = planning;
+        this.images = images;
         this.clock = clock;
-        this.uploadRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
-        Files.createDirectories(uploadRoot);
     }
 
     public Optional<Completion> find(Long dareId, LocalDate date) {
@@ -60,28 +53,22 @@ public class CompletionService {
         Optional<Completion> existing = find(dare.getId(), date);
         if (existing.isPresent()) return existing.get();
 
-        String imagePath = saveImage(image);
+        String imagePath = images.save(image);
         String cleanNote = note == null ? "" : note.trim();
         if (cleanNote.length() > 300) cleanNote = cleanNote.substring(0, 300);
         return completionRepository.save(new Completion(dare, date, cleanNote, imagePath, LocalDateTime.now(clock)));
     }
 
-    private String saveImage(MultipartFile image) throws IOException {
-        if (image == null || image.isEmpty()) return null;
-        String original = image.getOriginalFilename() == null ? "image" : image.getOriginalFilename();
-        String extension = "";
-        int dot = original.lastIndexOf('.');
-        if (dot >= 0) extension = original.substring(dot).toLowerCase();
-        if (!List.of(".jpg", ".jpeg", ".png", ".webp", ".gif").contains(extension)) {
-            throw new IllegalArgumentException("JPG, PNG, WEBP, GIF 이미지만 업로드할 수 있습니다.");
-        }
-        String filename = UUID.randomUUID() + extension;
-        Path target = uploadRoot.resolve(filename).normalize();
-        if (!target.startsWith(uploadRoot)) throw new IllegalArgumentException("올바르지 않은 업로드 경로입니다.");
-        try (InputStream in = image.getInputStream()) {
-            Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-        }
-        return "/uploads/" + filename;
+    /**
+     * Removes the completion of {@code dareId} on {@code date} together with its photo.
+     * The plan of that day is unchanged, so the challenge simply becomes "not done" again.
+     */
+    @Transactional
+    public void undo(Long dareId, LocalDate date) {
+        Completion completion = find(dareId, date)
+                .orElseThrow(() -> new IllegalArgumentException("취소할 완료 기록이 없습니다."));
+        completionRepository.delete(completion);
+        images.deleteQuietly(completion.getImagePath());
     }
 
     public List<Completion> history() {

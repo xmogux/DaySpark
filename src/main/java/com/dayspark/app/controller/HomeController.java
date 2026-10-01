@@ -80,6 +80,17 @@ public class HomeController {
         return "redirect:/";
     }
 
+    @PostMapping("/complete/undo")
+    public String undoComplete(@RequestParam Long dareId, RedirectAttributes ra) {
+        try {
+            completionService.undo(dareId, LocalDate.now(clock));
+            ra.addFlashAttribute("success", "오늘 완료 기록을 취소했어요.");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/";
+    }
+
     @GetMapping("/challenges")
     public String challenges(Model model) {
         model.addAttribute("challenges", dareService.all());

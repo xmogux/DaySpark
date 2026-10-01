@@ -11,13 +11,8 @@ import com.dayspark.app.repository.ProgressLogRepository;
 import com.dayspark.app.repository.ReviewRecordRepository;
 import com.dayspark.app.repository.ScheduleExceptionRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -34,13 +29,12 @@ public class DareService {
     private final ProgressLogRepository progressRepository;
     private final ReviewRecordRepository reviewRecordRepository;
     private final PlanningService planning;
+    private final ImageStorage images;
     private final Clock clock;
-    private final Path uploadRoot;
 
     public DareService(DareRepository dareRepository, CompletionRepository completionRepository,
                        ScheduleExceptionRepository exceptionRepository, FocusSessionRepository focusRepository,
-                       ProgressLogRepository progressRepository, ReviewRecordRepository reviewRecordRepository, PlanningService planning, Clock clock,
-                       @Value("${app.upload-dir:uploads}") String uploadDir) {
+                       ProgressLogRepository progressRepository, ReviewRecordRepository reviewRecordRepository, PlanningService planning, ImageStorage images, Clock clock) {
         this.dareRepository = dareRepository;
         this.completionRepository = completionRepository;
         this.exceptionRepository = exceptionRepository;
@@ -48,8 +42,8 @@ public class DareService {
         this.progressRepository = progressRepository;
         this.reviewRecordRepository = reviewRecordRepository;
         this.planning = planning;
+        this.images = images;
         this.clock = clock;
-        this.uploadRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
     }
 
     public List<Dare> all() {
@@ -218,25 +212,13 @@ public class DareService {
         completionRepository.findAll().stream()
                 .filter(c -> c.getDare().getId().equals(id))
                 .map(Completion::getImagePath)
-                .filter(path -> path != null && path.startsWith("/uploads/"))
-                .forEach(this::deleteUploadedFileQuietly);
+                .forEach(images::deleteQuietly);
         focusRepository.deleteAllByDareId(id);
         progressRepository.deleteAllByDareId(id);
         reviewRecordRepository.deleteAllByDareId(id);
         exceptionRepository.deleteAllByDareId(id);
         completionRepository.deleteAllByDare_Id(id);
         dareRepository.deleteById(id);
-    }
-
-    private void deleteUploadedFileQuietly(String webPath) {
-        String filename = webPath.substring("/uploads/".length());
-        Path file = uploadRoot.resolve(filename).normalize();
-        if (!file.startsWith(uploadRoot)) return;
-        try {
-            Files.deleteIfExists(file);
-        } catch (IOException ignored) {
-            // The database delete should not fail just because an old proof image was already removed.
-        }
     }
 
     private void validate(String title, LocalDate startDate, LocalDate endDate, String repeatType, List<String> repeatDays, String category) {

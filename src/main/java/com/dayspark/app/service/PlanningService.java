@@ -42,7 +42,7 @@ public class PlanningService {
         if (!dare.isWithinDateRange(date)) throw new IllegalArgumentException("도전 시작일과 종료일 사이만 변경할 수 있습니다.");
         // A completed date keeps its plan: SKIP or RESET would leave a completion on an unplanned day.
         if (parsedMode != ScheduleMode.ADD && completions.findByDareIdAndChallengeDate(dare.getId(), date).isPresent()) {
-            throw new IllegalArgumentException("이미 완료한 날짜는 쉬기·예외 해제를 할 수 없습니다.");
+            throw new IllegalArgumentException("이미 완료한 날짜는 쉬기·예외 해제를 할 수 없습니다. 먼저 오늘 화면에서 완료를 취소해주세요.");
         }
         Optional<ScheduleException> current = exceptions.findByDareIdAndDay(dare.getId(), date);
         if (parsedMode == ScheduleMode.RESET) {

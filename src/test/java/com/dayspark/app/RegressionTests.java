@@ -2,9 +2,11 @@ package com.dayspark.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.dayspark.app.model.Completion;
@@ -12,15 +14,22 @@ import com.dayspark.app.model.Dare;
 import com.dayspark.app.service.ReviewService.ReviewItem;
 import com.dayspark.app.support.DaySparkIntegrationTest;
 import com.dayspark.app.support.IntegrationTestSupport;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 
 /** One test per bug found in the v5.5 review. Each test was committed before its fix. */
 @DaySparkIntegrationTest
 class RegressionTests extends IntegrationTestSupport {
+
+    @Value("${app.upload-dir}")
+    private String uploadDir;
 
     /**
      * Bug: after a challenge's repeat rule changed, past completions were still counted but the
@@ -94,5 +103,30 @@ class RegressionTests extends IntegrationTestSupport {
 
         // +1 (due 4 days ago) and +3 (due 2 days ago) are overdue; +7 is due in 2 days.
         assertThat(due).extracting(ReviewItem::offsetDays).containsExactly(1, 3);
+    }
+
+    /**
+     * Missing feature found in the review: a completion pressed by mistake could not be undone
+     * (only deleting the whole challenge removed it). Undo must remove the record and its photo.
+     */
+    @Test
+    void todaysCompletionCanBeUndoneAndItsPhotoIsDeleted() throws Exception {
+        Dare water = dailyDare("물 6잔", "HEALTH");
+        String id = water.getId().toString();
+        MockMultipartFile photo =
+                new MockMultipartFile("image", "cup.png", "image/png", "png".getBytes(StandardCharsets.UTF_8));
+        mvc.perform(multipart("/complete").file(photo).param("dareId", id)).andExpect(flash().attributeExists("success"));
+        Completion done = completions.findByDareIdAndChallengeDate(water.getId(), TODAY).orElseThrow();
+        Path stored = Path.of(uploadDir).resolve(done.getImagePath().substring("/uploads/".length()));
+        assertThat(stored).exists();
+
+        mvc.perform(post("/complete/undo").param("dareId", id))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"))
+                .andExpect(flash().attributeExists("success"));
+
+        assertThat(completions.findByDareIdAndChallengeDate(water.getId(), TODAY)).isEmpty();
+        assertThat(stored).doesNotExist();
+        mvc.perform(get("/")).andExpect(model().attribute("done", 0)).andExpect(model().attribute("total", 1));
     }
 }
