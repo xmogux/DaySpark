@@ -1,5 +1,6 @@
 package com.dayspark.app.service;
 
+import com.dayspark.app.domain.StreakCalculator;
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.repository.CompletionRepository;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -84,38 +86,20 @@ public class CompletionService {
     }
 
     /**
-     * Overall streak counts consecutive scheduled days only. Non-scheduled days are skipped.
+     * Overall streak: consecutive planned days on which at least one challenge was completed.
+     * A day is planned when any challenge is scheduled or was completed that day. Rules live in
+     * {@link StreakCalculator}.
      */
     public int calculateStreak(LocalDate today) {
         Set<LocalDate> completedDates = new HashSet<>();
         history().forEach(c -> completedDates.add(c.getChallengeDate()));
-
-        LocalDate cursor = completedDates.contains(today) ? today : today.minusDays(1);
-        // Fetch once instead of querying for each historical day.
         List<Dare> allDares = dareRepository.findAll();
-        int streak = 0;
-        int checked = 0;
-        while (checked < 366) {
-            // A mutable cursor cannot be captured in a Java lambda.
-            boolean hasSchedule = completedDates.contains(cursor);
-            for (Dare dare : allDares) {
-                if (hasSchedule) break;
-                if (planning.isScheduled(dare, cursor)) {
-                    hasSchedule = true;
-                    break;
-                }
-            }
-            if (!hasSchedule) {
-                cursor = cursor.minusDays(1);
-                checked++;
-                continue;
-            }
-            if (!completedDates.contains(cursor)) break;
-            streak++;
-            cursor = cursor.minusDays(1);
-            checked++;
-        }
-        return streak;
+        LocalDate earliest = allDares.stream().map(Dare::getStartDate).min(Comparator.naturalOrder()).orElse(null);
+        return StreakCalculator.count(
+                today,
+                earliest,
+                day -> completedDates.contains(day) || allDares.stream().anyMatch(d -> planning.isScheduled(d, day)),
+                completedDates::contains);
     }
 
     public int calculateCurrentStreak() {
