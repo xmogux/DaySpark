@@ -2510,6 +2510,15 @@ select {
   color: #4b6541;
   white-space: nowrap;
 }
+.cal-detail-focus-stopped {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8a6d3b;
+  background: #fbf3e2;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
 @media (max-width: 650px) {
   .cal-detail-heading {
     align-items: flex-start;

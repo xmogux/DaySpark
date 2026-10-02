@@ -111,8 +111,27 @@
             ? "READY TO FOCUS"
             : "FOCUS IN PROGRESS";
   }
-  function configDisabled(disabled) {
-    for (const id of ["focusDare", "focusMinutes", "breakMinutes", "repeatCount"]) $(id).disabled = disabled;
+  function configDisabled() {
+    for (const id of ["focusMinutes", "breakMinutes", "repeatCount"]) $(id).disabled = phase !== "idle";
+    // The challenge stays selectable during a session: changing it asks to switch (onDareChange).
+    $("focusDare").disabled = phase === "loading" || finishing;
+  }
+  function remainingNow() {
+    if (!session) return 0;
+    return phase === "focus"
+      ? Math.max(0, session.remainingMillis - (Date.now() - session.syncedAt))
+      : session.remainingMillis;
+  }
+  /** Whole minutes focused in the current session so far (pauses excluded, same rule as the server). */
+  function focusedMinutesNow() {
+    return session ? Math.floor((session.durationMinutes * 60000 - remainingNow()) / 60000) : 0;
+  }
+  function resetToIdle() {
+    session = null;
+    phase = "idle";
+    plan = null;
+    round = 1;
+    clearPlan();
   }
   function drawButtons() {
     const resting = phase === "break" || phase === "breakpaused",
@@ -131,7 +150,8 @@
     start.disabled = phase !== "idle";
     pause.disabled = !(focusing || phase === "paused" || resting || previewing);
     pause.textContent = ["paused", "breakpaused", "previewpaused"].includes(phase) ? "재개" : "일시정지";
-    $("resetTimer").disabled = phase === "idle";
+    $("resetTimer").disabled = phase === "idle" || phase === "loading";
+    $("resetTimer").textContent = previewing ? "테스트 종료" : resting ? "반복 종료" : "종료 및 기록";
     preview.disabled = phase !== "idle";
     $("focusPhase").textContent = previewing
       ? "VISUAL TEST"
@@ -143,7 +163,7 @@
     $("roundLabel").textContent = previewing
       ? "15초 · 저장 안 함"
       : `${round} / ${plan?.repeats || $("repeatCount").value}회차`;
-    configDisabled(phase !== "idle");
+    configDisabled();
   }
   function refresh() {
     if (phase === "preview" && Date.now() >= previewDeadline) {
@@ -166,7 +186,7 @@
       return;
     }
     if (phase === "focus" && session) {
-      const remain = Math.max(0, session.remainingMillis - (Date.now() - session.syncedAt));
+      const remain = remainingNow();
       draw(remain, session.durationMinutes * 60000, session.dareTitle + "에 집중 중");
       if (remain === 0 && !finishing && Date.now() >= finishRetryAt) finishRound();
     }
@@ -238,16 +258,13 @@
     try {
       const current = await request("/current");
       if (current.active === false) {
-        session = null;
-        phase = "idle";
-        plan = null;
-        round = 1;
-        clearPlan();
+        resetToIdle();
         setStatus("진행 중인 집중 세션이 없어 타이머를 초기화했어요.");
         return;
       }
       session = { ...current, syncedAt: Date.now() };
       phase = current.status === "PAUSED" ? "paused" : "focus";
+      $("focusDare").value = String(current.dareId);
     } catch (_) {
       /* offline: keep the current view and retry after FINISH_RETRY_MS */
     }
@@ -300,8 +317,9 @@
     }
     refresh();
   }
-  async function cancel() {
-    if (phase === "idle") return;
+  // "종료 및 기록": the time focused so far is saved, but it is not a completed round.
+  async function endSession() {
+    if (phase === "idle" || phase === "loading" || finishing) return;
     if (phase === "preview" || phase === "previewpaused") {
       phase = "idle";
       previewRemaining = PREVIEW_MS;
@@ -309,19 +327,98 @@
       refresh();
       return;
     }
-    if (!confirm("진행 중인 회차를 중단할까요? 미완료 집중 시간은 누적되지 않습니다.")) return;
+    if (phase === "break" || phase === "breakpaused") {
+      if (!confirm("남은 반복을 그만둘까요? 지금까지 완료한 회차 기록은 그대로 남아요.")) return;
+      resetToIdle();
+      setStatus("반복을 종료했어요. 완료한 회차 기록은 그대로 보관돼요.");
+      refresh();
+      return;
+    }
+    if (!session) return;
+    const minutes = focusedMinutesNow();
+    const question =
+      minutes > 0
+        ? `지금까지 집중한 ${minutes}분을 기록하고 세션을 종료할까요?\n끝까지 마친 회차가 아니므로 완료 횟수와 도전 진행량에는 포함되지 않아요.`
+        : "아직 1분이 지나지 않아 기록되는 집중 시간은 0분이에요. 세션을 종료할까요?";
+    if (!confirm(question)) return;
+    finishing = true; // blocks the automatic finish while the request is in flight
     try {
-      if (session) await request(`/${session.id}/cancel`, {});
-      session = null;
-      phase = "idle";
-      plan = null;
-      round = 1;
-      clearPlan();
-      setStatus("중단했어요. 완료한 회차 기록은 그대로 보관돼요.");
+      const s = await request(`/${session.id}/stop`, {});
+      resetToIdle();
+      if (s.status === "COMPLETED") {
+        setStatus(`설정한 시간이 이미 끝나 ${s.focusedMinutes}분 회차를 완료로 기록했어요.`);
+      } else if (s.status === "STOPPED" && s.focusedMinutes > 0) {
+        setStatus(`${s.focusedMinutes}분을 기록하고 종료했어요. (완료 회차에는 포함되지 않아요)`);
+      } else if (s.status === "STOPPED") {
+        setStatus("1분이 되기 전에 종료해서 기록된 집중 시간은 없어요.");
+      } else {
+        setStatus("이미 끝난 세션이라 타이머를 초기화했어요.");
+      }
+      showStats();
     } catch (e) {
       setStatus(e.message, true);
+      await resyncAfterFailedFinish();
+    } finally {
+      finishing = false;
+      refresh();
     }
-    refresh();
+  }
+  function dareTitle(id) {
+    const option = [...$("focusDare").options].find((o) => o.value === String(id));
+    return option ? option.textContent.trim() : "선택한 도전";
+  }
+  // Choosing another challenge while a session is active ends it (time recorded) and starts a new one.
+  async function onDareChange() {
+    const select = $("focusDare");
+    const next = select.value;
+    if (phase === "focus" || phase === "paused") {
+      const current = String(session.dareId);
+      if (finishing || !next || next === current) {
+        select.value = current;
+        return;
+      }
+      if (!confirm("현재 집중 세션을 종료하고 다른 도전으로 전환하시겠습니까?")) {
+        select.value = current;
+        return;
+      }
+      finishing = true;
+      refresh();
+      try {
+        const r = await request("/switch", { dareId: next, minutes: session.durationMinutes });
+        session = { ...r.started, syncedAt: Date.now() };
+        phase = "focus";
+        plan = {
+          ...(plan || { rest: 5, repeats: 1 }),
+          dareId: String(r.started.dareId),
+          minutes: r.started.durationMinutes,
+        };
+        savePlan();
+        const before = r.stopped
+          ? r.stopped.status === "COMPLETED"
+            ? `「${r.stopped.dareTitle}」 회차는 시간이 이미 끝나 완료로 기록했고, `
+            : `「${r.stopped.dareTitle}」 ${r.stopped.focusedMinutes}분을 기록했고, `
+          : "";
+        setStatus(`${before}「${r.started.dareTitle}」 집중을 시작했어요.`);
+        showStats();
+      } catch (e) {
+        select.value = current;
+        setStatus(e.message, true);
+        await resyncAfterFailedFinish();
+      } finally {
+        finishing = false;
+        refresh();
+      }
+      return;
+    }
+    if ((phase === "break" || phase === "breakpaused") && plan) {
+      if (!next) {
+        select.value = plan.dareId;
+        return;
+      }
+      plan.dareId = next;
+      savePlan();
+      setStatus(`다음 회차부터 「${dareTitle(next)}」에 집중해요.`);
+    }
   }
   async function restore() {
     try {
@@ -346,12 +443,18 @@
         $("breakMinutes").value = plan.rest;
         $("repeatCount").value = plan.repeats;
         phase = active.status === "PAUSED" ? "paused" : "focus";
-        setStatus("서버에 저장된 세션을 복원했어요.");
+        const requested = $("focusDare").dataset.selected;
+        if (requested && requested !== String(active.dareId)) {
+          setStatus(
+            `「${active.dareTitle}」 집중 세션이 진행 중이에요. 연결할 도전을 바꾸면 지금까지의 시간을 기록하고 전환해요.`,
+          );
+        } else {
+          setStatus("서버에 저장된 세션을 복원했어요.");
+        }
       } else {
-        clearPlan();
-        plan = null;
-        round = 1;
-        phase = "idle";
+        resetToIdle();
+        const requested = $("focusDare").dataset.selected;
+        if (requested) $("focusDare").value = requested; // the challenge the page was opened for
       }
     } catch (e) {
       setStatus("서버 연결 실패: " + e.message, true);
@@ -361,7 +464,8 @@
   }
   start.addEventListener("click", () => beginFocus());
   pause.addEventListener("click", togglePause);
-  $("resetTimer").addEventListener("click", cancel);
+  $("resetTimer").addEventListener("click", endSession);
+  $("focusDare").addEventListener("change", onDareChange);
   preview.addEventListener("click", beginPreview);
   $("focusMinutes").addEventListener("input", () => {
     if (phase === "idle") refresh();
