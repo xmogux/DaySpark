@@ -50,21 +50,21 @@
 
 | 버그 | 테스트 커밋 | 수정 커밋 | 테스트 |
 |---|---|---|---|
-| 반복 요일을 바꾸면 주간 달성률 200% | `1a6dc71` | `68f2eaf` | `ratesStayAtOrBelow100PercentAfterRepeatRuleChange` |
-| ADD → 완료 → RESET 하면 완료가 계획 없는 날에 남음 | `a967ce4` | `1d5ceca` | `resetIsRejectedOnACompletedDate` |
-| 지난 복습이 오늘 화면에서 사라짐 | `00fe54b` | `8169d77` | `overdueReviewsStayOnTheHomeScreenUntilDone` |
-| 완료를 취소할 수 없음 | `50383f5` | `08c499c` | `todaysCompletionCanBeUndoneAndItsPhotoIsDeleted` |
-| 폼이 서버가 거부하는 카테고리(MIND)를 보여줌 | `28a7c11` | `74977dd` | `challengeFormOffersExactlyTheSupportedCategories` |
-| 포모도로·진행량·완료가 따로 놂 | `d9f697e` | `ba3fc40` | `FocusAutoCompleteTests` (5개) |
-| 404·405가 500으로, API가 HTML로 응답 | `bc09392` | `c0711eb` | `ErrorHandlingTests` (4개) |
-| (리팩터링이 만든 회귀) v5 이전 집중 기록이 있으면 도전 상세 500 | `3b863c9` | `1fb631d` | `detailPageToleratesFocusSessionsFromBeforeV5` |
+| 반복 요일을 바꾸면 주간 달성률 200% | `6852c9f` | `6198162` | `ratesStayAtOrBelow100PercentAfterRepeatRuleChange` |
+| ADD → 완료 → RESET 하면 완료가 계획 없는 날에 남음 | `8a54827` | `c462807` | `resetIsRejectedOnACompletedDate` |
+| 지난 복습이 오늘 화면에서 사라짐 | `d29a8da` | `37d3c1c` | `overdueReviewsStayOnTheHomeScreenUntilDone` |
+| 완료를 취소할 수 없음 | `72628a0` | `534bded` | `todaysCompletionCanBeUndoneAndItsPhotoIsDeleted` |
+| 폼이 서버가 거부하는 카테고리(MIND)를 보여줌 | `51754b8` | `fbad7eb` | `challengeFormOffersExactlyTheSupportedCategories` |
+| 포모도로·진행량·완료가 따로 놂 | `1aaa383` | `f939437` | `FocusAutoCompleteTests` (5개) |
+| 404·405가 500으로, API가 HTML로 응답 | `3f761f1` | `d38800f` | `ErrorHandlingTests` (4개) |
+| (리팩터링이 만든 회귀) v5 이전 집중 기록이 있으면 도전 상세 500 | `6d6ce8d` | `2860dbc` | `detailPageToleratesFocusSessionsFromBeforeV5` |
 
 기존 테스트 자체의 문제도 고쳤습니다.
 
 | 문제 | 커밋 |
 |---|---|
-| 달력 테스트가 화면에 없는 문자열 `달력 UI v5.4`를 기대(항상 실패) | `c5741f4` |
-| SKIP 테스트의 `not(hasItem(d))`가 엔티티 인스턴스 비교라 **항상 통과** | `0cafdff` |
+| 달력 테스트가 화면에 없는 문자열 `달력 UI v5.4`를 기대(항상 실패) | `98187cc` |
+| SKIP 테스트의 `not(hasItem(d))`가 엔티티 인스턴스 비교라 **항상 통과** | `b19812b` |
 
 ## 4. 실행 결과
 
@@ -88,6 +88,7 @@
 | 검증 | 방법 | 결과 |
 |---|---|---|
 | 컴파일 | main 47개 + test 15개 파일을 Spring/JPA API 스텁과 함께 `javac --release 17` | 성공 |
+| Maven Wrapper | `./mvnw -v`가 Maven 3.9.11 배포본 경로를 찾아 실행되는지 (다운로드 단계는 차단 환경이라 미확인) | 성공 |
 | 단위 테스트 | 위 4개 단위 테스트 클래스를 실제 JUnit 5.10 + AssertJ로 실행 | **20 / 20 통과** |
 | 버그 재현·수정 확인 | 실제 서비스·컨트롤러 코드를 메모리 저장소로 연결해 시나리오 실행 | 수정 전 실패 → 수정 후 통과 (기대값 34개 전부 통과) |
 | 리팩터링 동일성 | 같은 데이터(도전 9개, 약 70일)를 리팩터링 전·후 코드에 넣고 30개 화면의 모델 값 비교 | 동일 (사용하지 않던 속성 2개 제거만 차이) |

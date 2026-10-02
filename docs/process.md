@@ -3,7 +3,7 @@
 ## 1. 지금까지의 이력
 
 버전 관리는 v5.5 시점에 시작했습니다. 그 이전(v1~v5.5)의 변경은 [CHANGELOG.md](CHANGELOG.md)에만 있고,
-**과거 날짜로 꾸민 커밋은 없습니다.** 첫 커밋 `48f5160`이 v5.5 원본 그대로입니다.
+**과거 날짜로 꾸민 커밋은 없습니다.** 첫 커밋 `d8df244`이 v5.5 원본 그대로입니다.
 
 ```bash
 git log --oneline --graph      # 브랜치와 병합 구조 보기
@@ -11,9 +11,9 @@ git log --oneline --graph      # 브랜치와 병합 구조 보기
 
 | 단계 | 브랜치 / 커밋 | 내용 |
 |---|---|---|
-| 기준선 | `48f5160` | v5.5 그대로 + `.gitattributes` |
-| 환경 | `9fa1b23`, `b5f4527` | Java 17 기준 통일, 실행기를 `RUN_DAYSPARK.bat` 하나로 |
-| 테스트 정비 | `c5741f4`, `0cafdff`, `7fa6966`, `de147d1` | 항상 실패/항상 통과하던 테스트 수정, 고정 시계, `now()` 제거 |
+| 기준선 | `d8df244` | v5.5 그대로 + `.gitattributes` |
+| 환경 | `24d92b1`, `947c3cd` | Java 17 기준 통일, 실행기를 `RUN_DAYSPARK.bat` 하나로 |
+| 테스트 정비 | `98187cc`, `b19812b`, `7c40d8f`, `a0d5215` | 항상 실패/항상 통과하던 테스트 수정, 고정 시계, `now()` 제거 |
 | 버그 수정 | `fix/stats-rate-over-100`, `fix/reset-after-completion`, `fix/overdue-reviews`, `feat/undo-completion` | 브랜치마다 **실패 테스트 → 수정** 2커밋 후 병합 |
 | 규칙 고정 | `rules/explicit-domain-rules` | `StreakCalculator`, `domain-rules.md`, `DomainRuleTests` |
 | 기능 연결 | `feat/focus-auto-complete` | 포모도로 → 진행량 → 자동 완료, 브라우저 재시도 폭주 수정 |
@@ -22,11 +22,10 @@ git log --oneline --graph      # 브랜치와 병합 구조 보기
 | 빌드 | `build/jacoco-ci` | JaCoCo, GitHub Actions |
 | 버그 | `fix/legacy-focus-sessions` | 리팩터링 중 생긴 회귀(완료일 없는 옛 집중 기록) — 테스트 → 수정 |
 | 문서 | `docs/design-and-process` | 요구사항·설계·테스트·과정·한계 문서 |
+| 빌드 | `build/maven-wrapper` | Maven Wrapper 추가 (`RUN_DAYSPARK.bat`이 Maven 설치 없이 실행되도록) |
 
 이 이력은 로컬에서 만든 뒤 GitHub에 한 번에 올린 것입니다. 그래서 위 브랜치들에는 GitHub의 PR·리뷰 기록이 없습니다.
 **GitHub의 Issue / PR / CI 기록은 저장소를 올린 다음부터 쌓입니다** (아래 3절).
-
-일부 커밋은 AI 도구(Claude)와 함께 작성했고, 해당 커밋 메시지 끝에 `Co-Authored-By: Claude` 표기가 있습니다.
 
 ## 2. GitHub에 올리기 (최초 1회)
 
@@ -36,13 +35,6 @@ git log --oneline --graph      # 브랜치와 병합 구조 보기
 cd DaySpark
 git remote add origin https://github.com/<계정>/DaySpark.git
 git push -u origin main
-
-# 3) Maven Wrapper가 아직 없다면 (README "Maven Wrapper")
-mvn -N wrapper:wrapper -Dmaven=3.9.11 -Dtype=only-script
-chmod +x mvnw
-git add mvnw mvnw.cmd .mvn
-git commit -m "build: add Maven Wrapper"
-git push
 ```
 
 그다음 GitHub 설정:
