@@ -7,7 +7,7 @@
 |---|---|
 | 오늘 | 오늘 계획된 도전, 진행률, Streak, 완료(사진·메모) / **완료 취소**, 오늘·지난 복습 |
 | 도전 | 생성·수정·쉬기·삭제, 반복 일정(매일·평일·주말·요일), 수치 목표, 일정 예외(쉬기·추가), 복습 플랜 |
-| 집중 타이머 | 포모도로(집중·휴식·반복). `분` 목표면 진행량에 더해지고 목표 첫 도달 시 **자동 완료** |
+| 집중 타이머 | 포모도로(집중·휴식·반복). 중간에 끝내도 **실제 집중한 시간은 기록**, 끝까지 마친 회차는 `분` 목표 진행량에 더해지고 목표 첫 도달 시 **자동 완료**. 진행 중 도전 전환 |
 | 달력 / 통계 / 기록 | 월간 달성률·집중 시간, 주간·월간 통계, 카테고리별 완료, 완료 기록 |
 
 ## 문서
@@ -17,7 +17,7 @@
 | [docs/requirements.md](docs/requirements.md) | 기능·비기능 요구사항, 수용 기준, 대응 테스트 |
 | [docs/domain-rules.md](docs/domain-rules.md) | 하루의 계획, 일정 예외, 완료/취소, Streak, 복습 플랜, 포모도로 연결 규칙 |
 | [docs/architecture.md](docs/architecture.md) | 계층 구조, 클래스 다이어그램, ERD, 시퀀스·상태 다이어그램, 설계 결정 |
-| [docs/testing.md](docs/testing.md) | 테스트 55개 구성, 버그별 회귀 테스트, 실행 결과 기록 |
+| [docs/testing.md](docs/testing.md) | 테스트 68개 구성, 버그별 회귀 테스트, 실행 결과 기록 |
 | [docs/process.md](docs/process.md) | Git 이력, GitHub 올리기, Issue → PR → CI 작업 방식 |
 | [docs/limitations.md](docs/limitations.md) | 하지 않은 것과 이유(N+1, 단일 사용자, Docker 미사용 등) |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | 버전별 변경 |

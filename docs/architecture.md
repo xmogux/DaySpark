@@ -127,7 +127,10 @@ classDiagram
         <<Entity>>
         +pause(now) / resume(now)
         +complete(now, zone)
+        +stop(now, zone)
         +remainingMillis(now) long
+        +focusedMillis(now) long
+        +getFocusedMinutes() int
     }
     class StreakCalculator {
         <<domain>>
@@ -236,8 +239,8 @@ erDiagram
         timestamp ended_at
         bigint paused_millis
         int planned_minutes
-        varchar status "RUNNING|PAUSED|COMPLETED|CANCELLED"
-        date completed_day
+        varchar status "RUNNING|PAUSED|COMPLETED|STOPPED|CANCELLED"
+        date completed_day "기록된 날짜 (COMPLETED·STOPPED)"
     }
     REVIEW_RECORDS {
         bigint id PK
@@ -314,11 +317,24 @@ stateDiagram-v2
     PAUSED --> RUNNING: resume
     RUNNING --> COMPLETED: finish (남은 시간 0)
     PAUSED --> COMPLETED: finish (남은 시간 0, 재개 후 완료)
-    RUNNING --> CANCELLED: cancel
-    PAUSED --> CANCELLED: cancel
+    RUNNING --> STOPPED: stop / switch (남은 시간 > 0)
+    PAUSED --> STOPPED: stop / switch (일시정지 직전까지 기록)
+    RUNNING --> COMPLETED: stop / switch (남은 시간 0)
+    RUNNING --> CANCELLED: cancel (API만, 기록 안 함)
+    PAUSED --> CANCELLED: cancel (API만, 기록 안 함)
     COMPLETED --> [*]
+    STOPPED --> [*]
     CANCELLED --> [*]
 ```
 
-- 동시에 진행 중인 세션은 1개뿐입니다(`FocusService.start`).
+| 상태 | 집중 시간 | 완료 횟수 | 진행량·자동 완료 |
+|---|---|---|---|
+| `COMPLETED` | 계획 시간 | +1 | 조건 충족 시 |
+| `STOPPED` | 실제 집중한 시간(일시정지 제외, 1분 미만 버림) | 0 | 없음 |
+| `CANCELLED` | 0 | 0 | 없음 |
+
+- 동시에 진행 중인 세션은 1개뿐입니다(`FocusService.start`). 다른 도전으로 바꿀 때는 `FocusService.switchTo`가
+  한 트랜잭션에서 이전 세션을 기록·종료하고 새 세션을 시작합니다.
+- 통계의 **집중 시간**은 `FocusService.recordedBetween`(COMPLETED + STOPPED), **완료 횟수**는
+  `completedBetween`(COMPLETED)에서 셉니다. 스키마 변경은 없습니다(`status` 값 하나 추가, `completed_day` 재사용).
 - 서버가 시작 시각·누적 일시정지 시간을 저장하므로 새로고침이나 탭을 닫아도 세션이 유지됩니다.
