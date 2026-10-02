@@ -53,17 +53,11 @@
 
 ## Maven Wrapper
 
-`mvnw`/`mvnw.cmd`가 저장소에 없다면 **한 번만** 생성해서 커밋합니다 (Maven이 설치된 환경 필요).
+저장소에 Maven Wrapper(3.3.4)가 들어 있어 **Maven을 설치할 필요가 없습니다.**
+`./mvnw`(WSL·Linux) 또는 `mvnw.cmd`(Windows)를 처음 실행하면 Maven 3.9.11을 `~/.m2/wrapper/`에 내려받아 씁니다.
+처음 한 번은 Maven과 프로젝트 의존성 다운로드로 몇 분 걸릴 수 있습니다(인터넷 필요).
 
-```bash
-# WSL / Linux
-sudo apt install -y maven            # 이미 있으면 생략
-mvn -N wrapper:wrapper -Dmaven=3.9.11 -Dtype=only-script
-chmod +x mvnw
-git add mvnw mvnw.cmd .mvn && git commit -m "build: add Maven Wrapper"
-```
-
-이후에는 Maven 설치 여부와 상관없이 아래 명령만 사용합니다.
+Maven 버전을 바꾸려면 `.mvn/wrapper/maven-wrapper.properties`의 `distributionUrl`을 수정합니다.
 
 ## 테스트
 
