@@ -1,5 +1,6 @@
 package com.dayspark.app.service;
 
+import com.dayspark.app.domain.FocusStatus;
 import com.dayspark.app.domain.StreakCalculator;
 import com.dayspark.app.model.Completion;
 import com.dayspark.app.model.Dare;
@@ -142,14 +143,16 @@ public class StatsService {
             );
         }
 
-        List<FocusSession> sessions = focus.completedBetween(gridStart, gridEnd);
+        // Minutes: every recorded session (completed or ended early). Rounds: completed sessions only.
+        List<FocusSession> sessions = focus.recordedBetween(gridStart, gridEnd);
         Map<LocalDate, Long> focusByDay = new HashMap<>();
-        sessions.forEach(s -> focusByDay.merge(s.getCompletedDay(), (long) s.getPlannedMinutes(), Long::sum));
+        sessions.forEach(s -> focusByDay.merge(s.getCompletedDay(), (long) s.getFocusedMinutes(), Long::sum));
         List<FocusSession> monthSessions = sessions
             .stream()
             .filter(s -> YearMonth.from(s.getCompletedDay()).equals(month) && !s.getCompletedDay().isAfter(today))
             .toList();
-        long focusMinutes = monthSessions.stream().mapToLong(FocusSession::getPlannedMinutes).sum();
+        long focusMinutes = FocusService.totalMinutes(monthSessions);
+        long focusRounds = monthSessions.stream().filter(StatsService::isCompleted).count();
 
         boolean hasElapsed = !month.atDay(1).isAfter(today) && monthPlanned > 0;
         String note = month.equals(YearMonth.from(today))
@@ -167,7 +170,7 @@ public class StatsService {
             hasElapsed,
             note,
             focusMinutes,
-            monthSessions.size()
+            focusRounds
         );
     }
 
@@ -176,15 +179,15 @@ public class StatsService {
     }
 
     public DayDetail dayDetail(LocalDate date) {
-        List<FocusSession> sessions = focus.completedBetween(date, date);
-        int focusMinutes = sessions.stream().mapToInt(FocusSession::getPlannedMinutes).sum();
+        List<FocusSession> sessions = focus.recordedBetween(date, date);
         return new DayDetail(
             date,
             dares.plannedFor(date),
             completions.forDate(date),
             reviews.forDate(date),
             sessions,
-            focusMinutes
+            (int) FocusService.totalMinutes(sessions),
+            sessions.stream().filter(StatsService::isCompleted).count()
         );
     }
 
@@ -223,11 +226,12 @@ public class StatsService {
             )
             .toList();
 
-        List<FocusSession> weekSessions = focus.completedBetween(weekStart, today);
-        List<FocusSession> monthSessions = focus.completedBetween(monthStart, today);
+        // Minutes include sessions ended early; the session counts are fully completed rounds only.
+        List<FocusSession> weekSessions = focus.recordedBetween(weekStart, today);
+        List<FocusSession> monthSessions = focus.recordedBetween(monthStart, today);
         Map<String, Long> focusPerCategory = new LinkedHashMap<>();
         monthSessions.forEach(s ->
-            focusPerCategory.merge(s.getDare().getCategory(), (long) s.getPlannedMinutes(), Long::sum)
+            focusPerCategory.merge(s.getDare().getCategory(), (long) s.getFocusedMinutes(), Long::sum)
         );
 
         return new StatsOverview(
@@ -240,10 +244,10 @@ public class StatsService {
             weekBars,
             categoryStats,
             focus.minutesBetween(today, today),
-            minutes(weekSessions),
-            minutes(monthSessions),
-            weekSessions.size(),
-            monthSessions.size(),
+            FocusService.totalMinutes(weekSessions),
+            FocusService.totalMinutes(monthSessions),
+            (int) weekSessions.stream().filter(StatsService::isCompleted).count(),
+            (int) monthSessions.stream().filter(StatsService::isCompleted).count(),
             focusPerCategory
         );
     }
@@ -278,14 +282,14 @@ public class StatsService {
         );
 
         // Sessions completed before v5 have no completedDay; they count in totals but not per period.
-        List<FocusSession> sessions = focus.completedFor(dare);
-        long weekFocus = minutes(
+        List<FocusSession> sessions = focus.recordedFor(dare);
+        long weekFocus = FocusService.totalMinutes(
             sessions
                 .stream()
                 .filter(s -> s.getCompletedDay() != null && !s.getCompletedDay().isBefore(weekStart))
                 .toList()
         );
-        long monthFocus = minutes(
+        long monthFocus = FocusService.totalMinutes(
             sessions
                 .stream()
                 .filter(s -> s.getCompletedDay() != null && !s.getCompletedDay().isBefore(monthStart))
@@ -302,7 +306,7 @@ public class StatsService {
             goalStreak,
             weekFocus,
             monthFocus,
-            sessions.size(),
+            (int) sessions.stream().filter(StatsService::isCompleted).count(),
             reviewPlan,
             reviewDone,
             history.stream().limit(6).toList()
@@ -325,7 +329,8 @@ public class StatsService {
         return planned == 0 ? 0 : Math.min(100, Math.round((done * 100.0) / planned));
     }
 
-    private static long minutes(List<FocusSession> sessions) {
-        return sessions.stream().mapToLong(FocusSession::getPlannedMinutes).sum();
+    /** A fully completed round; sessions ended early count for minutes but not here. */
+    private static boolean isCompleted(FocusSession session) {
+        return FocusStatus.COMPLETED.name().equals(session.getStatus());
     }
 }

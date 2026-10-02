@@ -34,6 +34,7 @@ public class FocusSession {
     @Column(nullable = false, length = 12)
     private String status = FocusStatus.RUNNING.name();
 
+    /** Day the session is recorded on: when the planned time ran out (COMPLETED) or the focus ended (STOPPED). */
     private LocalDate completedDay;
 
     protected FocusSession() {}
@@ -86,7 +87,37 @@ public class FocusSession {
     }
 
     public long remainingMillis(Instant now) {
-        return Math.max(0, plannedMinutes * 60_000L - elapsedMillis(now));
+        return Math.max(0, plannedMillis() - elapsedMillis(now));
+    }
+
+    private long plannedMillis() {
+        return plannedMinutes * 60_000L;
+    }
+
+    /**
+     * Time actually focused: wall-clock time minus pauses, never more than the planned time.
+     * A completed session counts its full planned time; a cancelled one counts nothing.
+     */
+    public long focusedMillis(Instant now) {
+        return switch (FocusStatus.parse(status)) {
+            case COMPLETED -> plannedMillis();
+            case CANCELLED -> 0;
+            case STOPPED, RUNNING, PAUSED -> Math.min(plannedMillis(), elapsedMillis(now));
+        };
+    }
+
+    /** Focus time that counts in the statistics: only for COMPLETED and STOPPED sessions. */
+    public long getRecordedMillis() {
+        return isRecorded() ? focusedMillis(endedAt) : 0;
+    }
+
+    /** Recorded focus time in whole minutes (for display). */
+    public int getFocusedMinutes() {
+        return (int) (getRecordedMillis() / 60_000);
+    }
+
+    public boolean isRecorded() {
+        return FocusStatus.parse(status).isRecorded();
     }
 
     public Instant expectedFinishedAt() {
@@ -128,10 +159,25 @@ public class FocusSession {
         status = FocusStatus.COMPLETED.name();
     }
 
+    /**
+     * Ends the session before the planned time ran out ("종료 및 기록"). The time focused so far is
+     * kept and time spent paused is not. The session is recorded on the day the focus actually
+     * ended: the start of the pause if it was paused, otherwise now. It is not a completed round.
+     */
+    public void stop(Instant now, ZoneId zone) {
+        boolean paused = FocusStatus.PAUSED.name().equals(status);
+        if (!paused && !FocusStatus.RUNNING.name().equals(status)) {
+            throw new IllegalStateException("이미 끝난 타이머입니다.");
+        }
+        Instant focusEnd = paused ? pausedAt : now;
+        if (paused) resume(now);
+        endedAt = now;
+        completedDay = focusEnd.atZone(zone).toLocalDate();
+        status = FocusStatus.STOPPED.name();
+    }
+
     public void cancel(Instant now) {
-        if (FocusStatus.COMPLETED.name().equals(status)) throw new IllegalStateException(
-            "완료된 기록은 취소할 수 없습니다."
-        );
+        if (isRecorded()) throw new IllegalStateException("이미 기록된 집중은 취소할 수 없습니다.");
         status = FocusStatus.CANCELLED.name();
         endedAt = now;
     }

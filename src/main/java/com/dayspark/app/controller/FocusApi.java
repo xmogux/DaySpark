@@ -38,6 +38,7 @@ public class FocusApi {
         this.clock = clock;
     }
 
+    /** {@code focusedMinutes}: whole minutes actually focused so far (pauses excluded). */
     public record SessionInfo(
         Long id,
         Long dareId,
@@ -45,8 +46,12 @@ public class FocusApi {
         String status,
         int durationMinutes,
         long remainingMillis,
+        int focusedMinutes,
         Instant serverTime
     ) {}
+
+    /** Answer of /switch: the session that was ended and recorded (null if none) and the new one. */
+    public record SwitchInfo(SessionInfo stopped, SessionInfo started) {}
 
     private SessionInfo info(FocusSession session) {
         Instant now = Instant.now(clock);
@@ -57,6 +62,7 @@ public class FocusApi {
             session.getStatus(),
             session.getPlannedMinutes(),
             session.remainingMillis(now),
+            (int) (session.focusedMillis(now) / 60_000),
             now
         );
     }
@@ -87,6 +93,20 @@ public class FocusApi {
         return info(focus.finish(id));
     }
 
+    /** "종료 및 기록": end now, keep the focused time, not a completed round. */
+    @PostMapping("/{id}/stop")
+    SessionInfo stop(@PathVariable Long id) {
+        return info(focus.stop(id));
+    }
+
+    /** End the active session (recorded) and start one for another challenge in one step. */
+    @PostMapping("/switch")
+    SwitchInfo switchTo(@RequestParam Long dareId, @RequestParam int minutes) {
+        FocusService.Switch result = focus.switchTo(dares.get(dareId), minutes);
+        return new SwitchInfo(result.stopped() == null ? null : info(result.stopped()), info(result.started()));
+    }
+
+    /** Discards the session without recording time. Not used by the page any more. */
     @PostMapping("/{id}/cancel")
     SessionInfo cancel(@PathVariable Long id) {
         return info(focus.cancel(id));
@@ -95,16 +115,17 @@ public class FocusApi {
     @GetMapping("/summary")
     Object summary() {
         LocalDate today = LocalDate.now(clock);
-        var sessions = focus.completedBetween(today.with(DayOfWeek.MONDAY), today);
+        LocalDate weekStart = today.with(DayOfWeek.MONDAY);
+        // Minutes include sessions ended early; counts are fully completed sessions only.
         return Map.of(
             "todayMinutes",
             focus.minutesBetween(today, today),
             "todayCount",
             focus.completedBetween(today, today).size(),
             "weekMinutes",
-            sessions.stream().mapToInt(FocusSession::getPlannedMinutes).sum(),
+            focus.minutesBetween(weekStart, today),
             "weekCount",
-            sessions.size()
+            focus.completedBetween(weekStart, today).size()
         );
     }
 
