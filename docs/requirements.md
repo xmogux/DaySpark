@@ -67,15 +67,21 @@
 
 | # | 수용 기준 | 테스트 |
 |---|---|---|
-| 1 | 시작·일시정지·재개·중단, 서버가 남은 시간을 계산(새로고침해도 유지) | `EnhancementApiTests.focusApiCanStartPauseResumeCancel` |
-| 2 | 계획 시간이 다 지나야 완료되고, 중단한 세션은 완료가 되지 않는다 | `FocusSessionUnitTests` (3개) |
+| 1 | 시작·일시정지·재개·종료, 서버가 남은 시간을 계산(새로고침해도 유지) | `EnhancementApiTests.focusApiCanStartPauseResumeCancel` |
+| 2 | 계획 시간이 다 지나야 완료되고, 중간에 끝낸 세션은 완료가 되지 않는다 | `FocusSessionUnitTests.pauseResumeAndCompletionRequireFullElapsedTime`, `aStoppedSessionIsFinal` |
 | 3 | 자정을 넘긴 세션은 시간이 끝난 날짜로 기록된다 | `FocusSessionUnitTests.completedDayUsesActualExpectedFinishTimeAcrossMidnight` |
+| 4 | **종료 및 기록**: 25분 타이머를 10분 만에 끝내면 오늘·주·월 집중 시간에 10분이 남는다 | `FocusStopAndSwitchTests.stoppingEarlyKeepsTheMinutesActuallyFocused` |
+| 5 | 중간에 끝낸 세션은 완료 횟수에 들어가지 않고 진행량·자동 완료도 없다 | `FocusStopAndSwitchTests.stoppedSessionIsNotCountedAsCompletedAndDoesNotAutoComplete` |
+| 6 | 끝까지 완료한 세션은 이전과 같이 시간 + 1회로 기록된다 | `FocusStopAndSwitchTests.completedSessionCountsMinutesAndOneRound` |
+| 7 | 일시정지한 시간은 집중 시간에 포함되지 않는다(일시정지 중 종료 포함) | `FocusStopAndSwitchTests.pausedTimeIsExcludedFromFocusTime`, `stoppingWhilePausedRecordsOnlyTheTimeBeforeThePause`, `FocusSessionUnitTests.stopKeepsTheTimeFocusedAndExcludesPauses` |
+| 8 | 세션 중 다른 도전을 고르면 확인 후 이전 세션 시간을 기록하고 새 세션을 시작한다 | `FocusStopAndSwitchTests.switchingToAnotherChallengeRecordsTheOldSessionAndStartsANewOne`, `switchingWithoutAnActiveSessionJustStarts` |
+| 9 | 계획 시간이 이미 지난 세션을 종료하면 정상 완료로 처리한다 | `FocusStopAndSwitchTests.stoppingAfterTheTimeRanOutCompletesTheSession` |
 
 ### FR-09 포모도로 ↔ 목표 연결
 
 | # | 수용 기준 | 테스트 |
 |---|---|---|
-| 1 | `분` 목표면 집중 시간이 진행량에 더해지고, 목표 도달 시 자동 완료 | `FocusAutoCompleteTests.focusMinutesReachingTheTargetCompleteTheChallenge` |
+| 1 | `분` 목표면 **끝까지 완료한** 집중 시간이 진행량에 더해지고, 목표 도달 시 자동 완료 | `FocusAutoCompleteTests.focusMinutesReachingTheTargetCompleteTheChallenge` |
 | 2 | 자동 완료는 목표에 처음 도달할 때 한 번만 | `FocusAutoCompleteTests.autoCompletionHappensOnlyWhenTheTargetIsFirstReached` |
 | 3 | 계획 없는 날의 집중은 정상 종료, 진행량·완료 반영 없음 | `FocusAutoCompleteTests.focusOnAnUnplannedDayFinishesNormallyWithoutProgressOrCompletion` |
 | 4 | 자정 경계에서도 세션이 RUNNING으로 남지 않는다 | `FocusAutoCompleteTests.sessionCrossingMidnightFinishesOnTheNextDayAndIsNotLeftRunning` |

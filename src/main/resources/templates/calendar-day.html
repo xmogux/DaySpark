@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>날짜별 기록 — DaySpark</title>
-    <link rel="stylesheet" th:href="@{/css/app.css(v=56)}" href="/css/app.css?v=56" />
+    <link rel="stylesheet" th:href="@{/css/app.css(v=57)}" href="/css/app.css?v=57" />
   </head>
   <body class="calendar-page">
     <div class="page-shell">
@@ -26,7 +26,7 @@
           <div><span>완료한 도전</span><strong th:text="${#lists.size(completed)}">2</strong><small>개</small></div>
           <div>
             <span>집중한 시간</span><strong th:text="${focusMinutes}">50</strong><small>분</small
-            ><em th:text="${#lists.size(sessions)} + '회 집중 완료'">2회 집중 완료</em>
+            ><em th:text="${focusRounds} + '회 집중 완료'">2회 집중 완료</em>
           </div>
           <div>
             <span>복습 일정</span><strong th:text="${#lists.size(reviews)}">1</strong><small>개</small
@@ -91,12 +91,22 @@
           </section>
           <section class="cal-detail-panel cal-detail-wide">
             <h2>포모도로 집중 기록</h2>
-            <p class="cal-detail-empty" th:if="${#lists.isEmpty(sessions)}">이날 완료한 집중 세션은 없어요.</p>
+            <p class="cal-detail-empty" th:if="${#lists.isEmpty(sessions)}">이날 기록된 집중 세션은 없어요.</p>
             <div class="cal-detail-focus-list">
               <div class="cal-detail-focus-row" th:each="s : ${sessions}">
                 <span class="cal-detail-row-symbol is-focus">◷</span>
                 <strong th:text="${s.dare.title}">알고리즘 공부</strong>
-                <span class="cal-detail-focus-minutes" th:text="${s.plannedMinutes} + '분'">25분</span>
+                <span
+                  class="cal-detail-focus-stopped"
+                  th:if="${s.status == 'STOPPED'}"
+                  th:text="'중간 종료 · 목표 ' + ${s.plannedMinutes} + '분'"
+                  >중간 종료 · 목표 25분</span
+                >
+                <span
+                  class="cal-detail-focus-minutes"
+                  th:text="${s.focusedMinutes > 0 ? s.focusedMinutes + '분' : '1분 미만'}"
+                  >25분</span
+                >
               </div>
             </div>
           </section>

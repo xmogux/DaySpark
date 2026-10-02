@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>집중 타이머 — DaySpark</title>
-    <link rel="stylesheet" href="/css/app.css?v=56" />
+    <link rel="stylesheet" href="/css/app.css?v=57" />
   </head>
   <body>
     <div class="page-shell">
@@ -14,7 +14,8 @@
           <span class="eyebrow">DEEP WORK · POMODORO</span>
           <h1>집중이 쌓이는<br /><span>시간을 보세요.</span></h1>
           <p>
-            집중 시간과 휴식 시간, 반복 횟수를 정하세요. 완료한 집중 세션만 기록하며 중단한 시간은 포함하지 않습니다.
+            집중 시간과 휴식 시간, 반복 횟수를 정하세요. 중간에 종료해도 실제로 집중한 시간은 기록되고(일시정지한 시간
+            제외), 끝까지 마친 회차만 완료 횟수와 도전 진행량에 반영됩니다.
           </p>
           <div class="focus-summary">
             <div><span>오늘 집중</span><strong id="todayMinutes">—</strong></div>
@@ -62,7 +63,7 @@
             </div>
           </div>
           <div class="timer-controls">
-            <button type="button" id="resetTimer" class="ghost-btn">중단</button
+            <button type="button" id="resetTimer" class="ghost-btn">종료 및 기록</button
             ><button type="button" id="pauseTimer" class="ghost-btn" disabled>일시정지</button
             ><button type="button" id="startTimer" class="secondary-btn">시작하기 ▶</button>
           </div>
@@ -89,11 +90,12 @@
           </div>
           <div class="focus-note">
             * 여러 탭에서 동시에 시작할 수 없습니다. 페이지를 새로고침해도 집중 세션은 서버에 남습니다. 휴식·반복 설정은
-            현재 브라우저에 저장됩니다.
+            현재 브라우저에 저장됩니다. 집중 중에 연결할 도전을 바꾸면 지금까지의 시간을 기록하고 새 도전으로 다시
+            시작합니다.
           </div>
         </section>
       </main>
-      <script src="/js/focus.js?v=4"></script>
+      <script src="/js/focus.js?v=5"></script>
     </div>
   </body>
 </html>

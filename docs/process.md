@@ -23,6 +23,7 @@ git log --oneline --graph      # 브랜치와 병합 구조 보기
 | 버그 | `fix/legacy-focus-sessions` | 리팩터링 중 생긴 회귀(완료일 없는 옛 집중 기록) — 테스트 → 수정 |
 | 문서 | `docs/design-and-process` | 요구사항·설계·테스트·과정·한계 문서 |
 | 빌드 | `build/maven-wrapper` | Maven Wrapper 추가 (`RUN_DAYSPARK.bat`이 Maven 설치 없이 실행되도록) |
+| 기능 (v5.7) | `feat/focus-stop-and-switch` | 실패 테스트 `fc92169` → 서버 `21bc4d4` → 화면 `948cee6` → 문서. 중간 종료 시간 기록, 도전 전환 |
 
 이 이력은 로컬에서 만든 뒤 GitHub에 한 번에 올린 것입니다. 그래서 위 브랜치들에는 GitHub의 PR·리뷰 기록이 없습니다.
 **GitHub의 Issue / PR / CI 기록은 저장소를 올린 다음부터 쌓입니다** (아래 3절).
@@ -85,5 +86,5 @@ flowchart LR
 | 단계 | 내용 |
 |---|---|
 | JDK | 17(프로젝트 기준), 25(팀 Windows PC) 두 버전 동시 |
-| 빌드 | `./mvnw -B -ntp verify` (컴파일 → 테스트 55개 → JaCoCo) |
+| 빌드 | `./mvnw -B -ntp verify` (컴파일 → 테스트 68개 → JaCoCo) |
 | 결과 | JDK 17 실행 요약에 패키지별 커버리지 표, `jacoco-report`·`surefire-reports-*` 아티팩트 업로드 |

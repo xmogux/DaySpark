@@ -13,19 +13,20 @@
 | 커버리지 리포트 | `target/site/jacoco/index.html` (패키지 → 클래스 → 소스 줄 단위) |
 | CI 실행 기록 | GitHub 저장소 → **Actions** 탭 (JDK 17 job 요약에 패키지별 커버리지 표) |
 
-## 2. 테스트 구성 — 55개
+## 2. 테스트 구성 — 68개
 
 | 종류 | 클래스 | 개수 | 확인하는 것 |
 |---|---|---:|---|
 | 단위 | `StreakCalculatorTest` | 6 | Streak 규칙 (건너뛰기, 진행 중인 오늘, 끊김, 범위) |
 | 단위 | `ReviewIntervalsTest` | 6 | 복습 간격 입력 정규화·검증 메시지 |
 | 단위 | `DareScheduleTest` | 5 | 반복 규칙, 기간, 쉬기 경계, 요일 라벨, 복습 저장 |
-| 단위 | `FocusSessionUnitTests` | 3 | 타이머 일시정지·재개·완료 조건, 자정 넘김 |
+| 단위 | `FocusSessionUnitTests` | 8 | 타이머 일시정지·재개·완료 조건, 자정 넘김, 종료 및 기록(일시정지 제외·계획 시간 상한·종료 후 변경 불가) |
 | 통합 | `DaySparkApplicationTests` | 10 | 주요 페이지, 도전 생성·수정 폼, 완료+사진, 입력 오류 |
 | 통합 | `EnhancementApiTests` | 5 | 수치 목표, 일정 예외, 집중 API, 복습 플랜 |
 | 통합 | `RegressionTests` | 6 | 리뷰·리팩터링 중 찾은 버그 6건 (아래 3절) |
 | 통합 | `DomainRuleTests` | 5 | 복습·Streak·수치 목표·쉬기 규칙 (`domain-rules.md`) |
 | 통합 | `FocusAutoCompleteTests` | 5 | 포모도로 → 진행량 → 자동 완료, 계획 없는 날, 자정 |
+| 통합 | `FocusStopAndSwitchTests` | 8 | 중간 종료 시간 기록, 완료 횟수·자동 완료 제외, 일시정지 제외, 도전 전환 (`domain-rules.md` 7.1) |
 | 통합 | `ErrorHandlingTests` | 4 | 404 / 405 / 400 메시지 / JSON API 오류 |
 
 - **단위 테스트**는 Spring 없이 순수 Java 객체만 검사합니다(빠름).
@@ -58,6 +59,7 @@
 | 포모도로·진행량·완료가 따로 놂 | `1aaa383` | `f939437` | `FocusAutoCompleteTests` (5개) |
 | 404·405가 500으로, API가 HTML로 응답 | `3f761f1` | `d38800f` | `ErrorHandlingTests` (4개) |
 | (리팩터링이 만든 회귀) v5 이전 집중 기록이 있으면 도전 상세 500 | `6d6ce8d` | `2860dbc` | `detailPageToleratesFocusSessionsFromBeforeV5` |
+| (v5.7) 타이머를 중간에 멈추면 집중한 시간이 사라짐, 도전을 바꿀 수 없음 | `fc92169` | `21bc4d4`, `948cee6`(화면) | `FocusStopAndSwitchTests` (8개) |
 
 기존 테스트 자체의 문제도 고쳤습니다.
 
@@ -72,18 +74,22 @@
 
 | 날짜 | 환경 | 명령 | Tests run | Failures | Errors | 서비스 계층 Line 커버리지 |
 |---|---|---|---:|---:|---:|---:|
-| (기입) | WSL Ubuntu, JDK __ | `./mvnw verify` | | | | |
+| v5.6 시점 (사용자 실행) | Windows, JDK 25.0.4.1 | `mvnw.cmd test` | 55 | 0 | 0 | (verify 미실행) |
+| (기입) v5.7 | Windows / WSL, JDK __ | `mvnw.cmd test` 또는 `./mvnw verify` | | | | |
 | (기입) | GitHub Actions JDK 17 | `./mvnw -B verify` | | | | |
 | (기입) | GitHub Actions JDK 25 | `./mvnw -B verify` | | | | |
 
-`target/surefire-reports/`의 요약 줄(`Tests run: 55, Failures: 0, Errors: 0, Skipped: 0`)과
+`target/surefire-reports/`의 요약 줄(`Tests run: 68, Failures: 0, Errors: 0, Skipped: 0`)과
 `target/site/jacoco/index.html`의 `com.dayspark.app.service` 행을 그대로 옮겨 적고, 화면을 캡처해 보고서에 넣습니다.
 **실행하지 않은 결과는 적지 않습니다.**
 
 ### 4.2 작성 환경에서 한 검증 (Maven 없이)
 
-이번 정리 작업을 한 환경은 Maven Central 접속이 차단되어 Spring Boot 의존성을 받을 수 없었습니다.
-그래서 `./mvnw verify`는 **아직 한 번도 실행되지 않았고**, 대신 아래 검증을 했습니다.
+정리 작업을 한 환경은 Maven Central 접속이 차단되어 Spring Boot 의존성을 받을 수 없었습니다.
+그래서 그 환경에서는 Maven 빌드를 돌리지 못했고 아래 검증을 대신 했습니다. 실제 Maven 실행 결과는 4.1 표에만 적습니다
+(v5.6은 Windows PC에서 `mvnw.cmd test` 55개 통과).
+
+**v5.6 정리 작업**
 
 | 검증 | 방법 | 결과 |
 |---|---|---|
@@ -96,7 +102,21 @@
 | 템플릿 | 모든 템플릿 태그 균형, `th:replace` 대상 존재, 포맷 전후 `th:*` 속성 동일 | 이상 없음 |
 | 설계 문서 | `architecture.md`의 Mermaid 다이어그램 6개 렌더링 | 전부 렌더링 |
 
-**이 검증으로 확인하지 못한 것:** Spring 컨텍스트 구성, JPA 매핑·쿼리 메서드, Thymeleaf 렌더링, 통합 테스트 35개.
+**v5.7 집중 타이머 변경** (`feat/focus-stop-and-switch`)
+
+| 검증 | 방법 | 결과 |
+|---|---|---|
+| 컴파일 | main 47개 + test 16개 파일, 스텁과 함께 `javac --release 17` | 성공 |
+| 단위 테스트 | 단위 테스트 4개 클래스를 실제 JUnit 5.10 + AssertJ로 실행 | **25 / 25 통과** |
+| 통합 테스트와 같은 시나리오 | `FocusStopAndSwitchTests` 8개를 실제 `FocusApi`·컨트롤러·서비스 + 메모리 저장소로 재현 (모델 값의 타입까지 비교) | 기대값 43개 전부 통과 |
+| 기존 동작 유지 | v5.6 시나리오(버그 6건·규칙·포모도로 자동 완료) 재실행 | 전부 통과 (12 + 7 + 14 + 1) |
+| 기존 데이터 동일성 | 완료·취소된 집중 기록이 섞인 같은 데이터를 v5.6(`ba36d9e`)과 v5.7 코드에 넣고 30개 화면 모델 비교 | 동일 (날짜 상세에 `focusRounds` 속성 추가만 차이, 값은 기존 표시와 같음) |
+| 브라우저 동작 | headless Chrome에서 `focus.js`를 상태를 가진 가짜 서버로 실행: 종료 및 기록(진행 중·일시정지 중·1분 미만·시간 초과), 확인창 취소, 도전 전환(확인·취소·일시정지 중), 전환 후 새로고침 복원, 휴식 중 도전 변경·반복 종료, `?dareId`가 다른 경우 안내 | 12개 시나리오 기대대로, 페이지 오류 0 |
+| 기존 브라우저 검사 | 정상 1회 흐름, finish 실패 시 재요청 제한 | 이전과 동일 (start 1·finish 1 / 6초간 finish 2회) |
+| 설계 문서 | Mermaid 다이어그램 7개 렌더링 | 전부 렌더링 |
+
+**이 검증으로 확인하지 못한 것:** Spring 컨텍스트 구성, JPA 매핑·쿼리 메서드(v5.7의 `...StatusIn` 2개 포함),
+Thymeleaf 렌더링(v5.7의 날짜 상세 표현식 포함), 통합 테스트 43개.
 이 부분은 `./mvnw verify`(또는 CI)를 처음 돌릴 때 확인됩니다. 실패하면 `target/surefire-reports/`의 해당 `.txt`를 보고 고치세요.
 
 ## 5. 수동 확인 (자동화하지 않은 것)

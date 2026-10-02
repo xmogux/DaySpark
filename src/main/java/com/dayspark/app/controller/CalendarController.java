@@ -61,6 +61,7 @@ public class CalendarController {
         model.addAttribute("reviews", detail.reviews());
         model.addAttribute("sessions", detail.sessions());
         model.addAttribute("focusMinutes", detail.focusMinutes());
+        model.addAttribute("focusRounds", detail.completedRounds());
         return "calendar-day";
     }
 
