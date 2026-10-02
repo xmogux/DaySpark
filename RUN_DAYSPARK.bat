@@ -14,7 +14,8 @@ cd /d "%~dp0"
 title DaySpark server
 
 set "PORT=8080"
-set "URL=http://localhost:%PORT%/"
+rem 127.0.0.1, not "localhost": the server binds IPv4 only and localhost may resolve to ::1 first.
+set "URL=http://127.0.0.1:%PORT%/"
 
 where java >nul 2>nul
 if errorlevel 1 (
