@@ -2,12 +2,13 @@
 
 반복 목표(도전)를 오늘 할 일로 바꿔 주고, 완료·집중 시간·복습을 한곳에 기록하는 **단일 사용자용 Spring Boot 웹앱**입니다.
 소프트웨어공학 수업 팀 프로젝트입니다.
+핵심 흐름은 **계획 → 실행 → 기록 → 복습 → 회고**입니다.
 
 | 화면 | 하는 일 |
 |---|---|
 | 오늘 | 오늘 계획된 도전, 진행률, Streak, 완료(사진·메모) / **완료 취소**, 오늘·지난 복습 |
-| 도전 | 생성·수정·쉬기·삭제, 반복 일정(매일·평일·주말·요일), 수치 목표, 일정 예외(쉬기·추가), 복습 플랜 |
-| 집중 타이머 | 포모도로(집중·휴식·반복). 중간에 끝내도 **실제 집중한 시간은 기록**, 끝까지 마친 회차는 `분` 목표 진행량에 더해지고 목표 첫 도달 시 **자동 완료**. 진행 중 도전 전환 |
+| 도전 | 생성·수정·쉬기/재개·삭제, 반복 일정(매일·평일·주말·요일), 수치 목표, 일정 예외(쉬기·추가), 사용자 지정 기준일·간격 복습 플랜 |
+| 집중 타이머 | 포모도로(집중·휴식·반복). 중간에 끝내도 **실제 집중한 시간은 기록**. 끝까지 마친 회차는 **해당 날짜가 계획일이고 목표 단위가 `분`일 때** 진행량에 반영되며, 목표 첫 도달 시 **자동 완료**. 진행 중 도전 전환 |
 | 달력 / 통계 / 기록 | 월간 달성률·집중 시간, 주간·월간 통계, 카테고리별 완료, 완료 기록 |
 
 ## 문서
@@ -26,15 +27,20 @@
 
 | 항목 | 기준 |
 |---|---|
-| Java | **17** (`pom.xml`의 `java.version`; JDK 17 이상에서 실행 가능, CI는 JDK 17·25에서 검증) |
+| Java | **17 기준** (`pom.xml`의 `java.version`; CI에서 JDK 17·25 검증) |
 | 빌드 | Maven Wrapper (`mvnw`, `mvnw.cmd`) — Maven을 따로 설치하지 않아도 됨 |
-| 프레임워크 | Spring Boot 3.5 (Web, Thymeleaf, Data JPA, Validation) |
+| 프레임워크 | Spring Boot 3.5.16 (Web, Thymeleaf, Data JPA, Validation) |
 | DB | H2 파일 DB (`./dayspark_v2.mv.db`) |
 | 테스트 | JUnit 5, Spring Boot Test(MockMvc), JaCoCo 커버리지 |
 | CI | GitHub Actions (`.github/workflows/ci.yml`) — push/PR마다 `./mvnw verify` |
 | 코드 스타일 | `.editorconfig`, `.prettierrc.json` (Prettier + prettier-plugin-java) |
 
 ## 실행
+
+### 사전 요구사항
+
+- JDK 17 이상
+- 최초 실행 시 Maven 및 프로젝트 의존성 다운로드를 위한 인터넷 연결
 
 **Windows:** `RUN_DAYSPARK.bat` 더블클릭.
 서버가 그 창에서 실행되고, 준비되면 기본 브라우저로 `http://127.0.0.1:8080/`이 열립니다.
@@ -84,6 +90,6 @@ src/main/java/com/dayspark/app
 ├── repository   Spring Data JPA
 └── config       Clock, 업로드 경로, 예시 데이터
 src/main/resources/templates   Thymeleaf (공통 내비게이션: fragments/layout.html)
+src/main/resources/static      app.js, focus.js, app.css
 src/test/java/com/dayspark/app 단위 테스트(domain, model) + 통합 테스트, support/(고정 시계)
-reports/                       보고서·발표 제출 양식
 ```
