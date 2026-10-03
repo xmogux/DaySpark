@@ -70,20 +70,20 @@
 
 ## 4. 실행 결과
 
-### 4.1 로컬 / CI 결과 — 처음 실행한 뒤 이 표를 채우세요
+### 4.1 로컬 / CI 결과
 
-| 날짜 | 환경 | 명령 | Tests run | Failures | Errors | 서비스 계층 Line 커버리지 |
-|---|---|---|---:|---:|---:|---:|
-| v5.6 시점 (사용자 실행) | Windows, JDK 25.0.4.1 | `mvnw.cmd test` | 55 | 0 | 0 | (verify 미실행) |
-| (기입) v5.7 | Windows / WSL, JDK __ | `mvnw.cmd test` 또는 `./mvnw verify` | | | | |
-| (기입) | GitHub Actions JDK 17 | `./mvnw -B verify` | | | | |
-| (기입) | GitHub Actions JDK 25 | `./mvnw -B verify` | | | | |
+| 날짜 | 환경 | 명령 | Tests run | Failures | Errors | Skipped | 서비스 계층 Line 커버리지 |
+|---|---|---|---:|---:|---:|---:|---:|
+| 2026-10-04 | Windows 10, JDK 25.0.4.1 | `mvnw.cmd clean test` | **68** | **0** | **0** | **0** | `test` 실행이라 미측정 |
+| v5.6 시점 (과거 사용자 실행) | Windows, JDK 25.0.4.1 | `mvnw.cmd test` | 55 | 0 | 0 | - | (verify 미실행) |
+| (CI 실행 후 기입) | GitHub Actions JDK 17 | `./mvnw -B verify` | | | | | |
+| (CI 실행 후 기입) | GitHub Actions JDK 25 | `./mvnw -B verify` | | | | | |
 
-`target/surefire-reports/`의 요약 줄(`Tests run: 68, Failures: 0, Errors: 0, Skipped: 0`)과
-`target/site/jacoco/index.html`의 `com.dayspark.app.service` 행을 그대로 옮겨 적고, 화면을 캡처해 보고서에 넣습니다.
-**실행하지 않은 결과는 적지 않습니다.**
+2026-10-04 로컬 실행에서는 Maven Surefire 최종 요약이 `Tests run: 68, Failures: 0, Errors: 0, Skipped: 0`이고 `BUILD SUCCESS`임을 확인했습니다.
+커버리지는 `test`가 아니라 `verify`를 실행한 뒤 `target/site/jacoco/index.html`에서 확인합니다.
+**CI와 커버리지는 실제 실행한 결과만 기록합니다.**
 
-### 4.2 작성 환경에서 한 검증 (Maven 없이)
+### 4.2 문서 정리 환경에서 한 별도 검증 (과거 기록)
 
 정리 작업을 한 환경은 Maven Central 접속이 차단되어 Spring Boot 의존성을 받을 수 없었습니다.
 그래서 그 환경에서는 Maven 빌드를 돌리지 못했고 아래 검증을 대신 했습니다. 실제 Maven 실행 결과는 4.1 표에만 적습니다
@@ -115,9 +115,9 @@
 | 기존 브라우저 검사 | 정상 1회 흐름, finish 실패 시 재요청 제한 | 이전과 동일 (start 1·finish 1 / 6초간 finish 2회) |
 | 설계 문서 | Mermaid 다이어그램 7개 렌더링 | 전부 렌더링 |
 
-**이 검증으로 확인하지 못한 것:** Spring 컨텍스트 구성, JPA 매핑·쿼리 메서드(v5.7의 `...StatusIn` 2개 포함),
-Thymeleaf 렌더링(v5.7의 날짜 상세 표현식 포함), 통합 테스트 43개.
-이 부분은 `./mvnw verify`(또는 CI)를 처음 돌릴 때 확인됩니다. 실패하면 `target/surefire-reports/`의 해당 `.txt`를 보고 고치세요.
+위 항목은 **당시 문서 정리 환경**에서 확인하지 못했던 범위다. 이후 2026-10-04 Windows에서 `mvnw.cmd clean test`를 실행하여
+단위 25개와 통합 43개, 총 68개 테스트가 모두 통과했음을 확인했다. 다만 JaCoCo 커버리지와 GitHub Actions JDK 17·25 결과는
+`verify` 또는 실제 CI를 실행한 뒤 별도로 기록한다.
 
 ## 5. 수동 확인 (자동화하지 않은 것)
 

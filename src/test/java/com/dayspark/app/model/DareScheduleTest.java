@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
-/** Repeat rules of a challenge (FR-02) and the pause rule (FR-04), without Spring. */
+/** Repeat rules of a challenge (R02) and the pause rule (R03), without Spring. */
 class DareScheduleTest {
 
     private static final LocalDate MON = LocalDate.of(2026, 10, 5);
