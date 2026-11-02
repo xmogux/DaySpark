@@ -27,7 +27,7 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
 
-      - name: Build, run all tests, measure coverage
+      - name: Build, run unit tests, measure coverage
         run: |
           if [ -f mvnw ]; then
             chmod +x mvnw

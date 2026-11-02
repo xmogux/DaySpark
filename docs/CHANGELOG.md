@@ -24,7 +24,7 @@
 - Added monthly summary cards for completed challenges, completion ratio through today, and actual completed focus minutes & rounds.
 - Date links keep the existing drill-down functionality; restyled the day details screen.
 - Added v5.4 page marker + updated launcher version check and CSS cache-busting across pages, to avoid silently opening a stale v5.3 process.
-- Added a static local Chrome preview with illustrative example data and a MockMvc test to check the calendar view model and markup. Full Maven tests require an installed Maven and access to cached dependencies.
+- Added a static local Chrome preview with illustrative example data to inspect the calendar appearance.
 
 ## v5.5 — Study Review Plan
 
@@ -32,9 +32,9 @@
 - 오늘 복습, 도전 상세 복습 타임라인, 월간 달력 복습 배지, 날짜 상세 복습 완료 처리 추가
 - 복습 완료 기록을 일반 도전 완료 통계와 분리 저장
 
-## v5.6 — 제출 준비: 일관성 · 테스트 · Git/CI (첫 Git 이력)
+## v5.6 — 제출 준비: 일관성 · 구조 · Git/CI
 
-이 버전부터 Git으로 관리합니다. 커밋 단위의 상세 이력은 `git log --graph`, 요약은 `docs/process.md`.
+이후 변경을 Git으로 관리하며, 현재 프로젝트 구성은 `README.md`와 `docs/process.md`에서 안내합니다.
 
 **실행 환경**
 
@@ -42,7 +42,7 @@
 - 실행기를 `RUN_DAYSPARK.bat` 하나로 정리(기본 브라우저, 8080 포트 확인). v5.4 표식을 기다리다 v5.5에서 브라우저를 열지 못하던 문제 제거
 - 서버를 127.0.0.1에만 바인딩. 브라우저 전용 데모(`demo.html`)와 미리보기 파일 제거
 
-**버그 수정 (모두 실패 테스트를 먼저 커밋)**
+**버그 수정**
 
 - 반복 요일 변경 후 주간 달성률 200% → "하루의 계획 = 예정 + 그날 완료" 규칙으로 해결
 - ADD → 완료 → RESET 시 완료가 계획 없는 날에 남던 문제 → 완료한 날짜는 SKIP·RESET 불가
@@ -66,10 +66,10 @@
 - `DareRequest` DTO로 생성/수정 흐름 하나로(파라미터 16개 메서드 제거), `ReviewIntervals` 값 객체, `StreakCalculator`
 - 화면 계산을 `StatsService`로 모으고 컨트롤러를 영역별로 분리, 내비게이션 fragment, 코드 포맷 통일
 
-**테스트·문서**
+**품질 관리·문서**
 
-- 고정 시계(2026-10-07) 기반 테스트 55개(단위 20 + 통합 35), JaCoCo, GitHub Actions(JDK 17·25)
-- 요구사항·수용 기준, 설계(ERD·클래스·시퀀스·상태), 테스트, 개발 과정, 한계 문서
+- JUnit 5 단위테스트, JaCoCo, GitHub Actions(JDK 17·25)
+- 요구사항·수용 기준, 설계(ERD·클래스·시퀀스·상태), 개발 과정, 한계 문서
 
 ## v5.7 — 집중 타이머: 실제 집중 시간 기록과 도전 전환
 
@@ -92,4 +92,4 @@
 - DB 스키마(상태 값 추가, `completed_day`를 기록 날짜로 재사용), 일시정지·새로고침 복원·서버 기준 시간 계산,
   자동 완료 규칙, 기존 `CANCELLED` 기록(계속 집계 제외 → 기존 데이터의 통계는 그대로)
 
-**테스트:** `FocusStopAndSwitchTests` 8개 + `FocusSessionUnitTests` 5개 추가 → 68개(단위 25 + 통합 43)
+**단위테스트:** `FocusSessionUnitTests`에서 시간·상태 전환 규칙을 검사

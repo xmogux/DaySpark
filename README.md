@@ -14,10 +14,10 @@
 
 | 문서 | 내용 |
 |---|---|
-| [docs/requirements.md](docs/requirements.md) | 기능·비기능 요구사항, 수용 기준, 대응 테스트 |
+| [docs/requirements.md](docs/requirements.md) | 기능·비기능 요구사항, 수용 기준과 구현 위치 |
 | [docs/domain-rules.md](docs/domain-rules.md) | 하루의 계획, 일정 예외, 완료/취소, Streak, 복습 플랜, 포모도로 연결 규칙 |
 | [docs/architecture.md](docs/architecture.md) | 계층 구조, 클래스 다이어그램, ERD, 시퀀스·상태 다이어그램, 설계 결정 |
-| [docs/testing.md](docs/testing.md) | 테스트 68개 구성, 버그별 회귀 테스트, 실행 결과 기록 |
+| [docs/testing.md](docs/testing.md) | 단위테스트 25개 구성, 실행 방법 및 검증 범위 |
 | [docs/process.md](docs/process.md) | Git 이력, GitHub 올리기, Issue → PR → CI 작업 방식 |
 | [docs/limitations.md](docs/limitations.md) | 하지 않은 것과 이유(N+1, 단일 사용자, Docker 미사용 등) |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | 버전별 변경 |
@@ -30,7 +30,7 @@
 | 빌드 | Maven Wrapper (`mvnw`, `mvnw.cmd`) — Maven을 따로 설치하지 않아도 됨 |
 | 프레임워크 | Spring Boot 3.5 (Web, Thymeleaf, Data JPA, Validation) |
 | DB | H2 파일 DB (`./dayspark_v2.mv.db`) |
-| 테스트 | JUnit 5, Spring Boot Test(MockMvc), JaCoCo 커버리지 |
+| 테스트 | JUnit 5, AssertJ, JaCoCo 커버리지 |
 | CI | GitHub Actions (`.github/workflows/ci.yml`) — push/PR마다 `./mvnw verify` |
 | 코드 스타일 | `.editorconfig`, `.prettierrc.json` (Prettier + prettier-plugin-java) |
 
@@ -62,15 +62,16 @@ Maven 버전을 바꾸려면 `.mvn/wrapper/maven-wrapper.properties`의 `distrib
 ## 테스트
 
 ```bash
-./mvnw test      # 단위 + 통합 테스트
+./mvnw test      # 단위테스트 실행 (4개 클래스, 25개 테스트)
 ./mvnw verify    # 테스트 + JaCoCo 커버리지 리포트 (target/site/jacoco/index.html)
 ```
 
 Windows CMD/PowerShell에서는 `mvnw.cmd test`, `mvnw.cmd verify`.
 
-2026-10-04 Windows 10 / JDK 25.0.4.1에서 `mvnw.cmd clean test`를 실행해 **68개 전체 통과(Failures 0, Errors 0, Skipped 0)**를 확인했습니다.
-GitHub Actions는 JDK 17·25에서 `verify`하도록 구성되어 있으며, 실제 CI 실행 결과는 Actions 기록으로 구분합니다.
-결과를 기록하는 곳과 테스트 목록은 [docs/testing.md](docs/testing.md).
+현재 포함된 단위테스트는 총 **25개**입니다. 테스트 수는 소스의 `@Test` 메서드를 기준으로 하며,
+이 버전의 실행 성공 여부와 커버리지 수치는 별도의 실측 결과를 확인해야 합니다.
+GitHub Actions는 JDK 17·25에서 `verify`를 실행하도록 설정되어 있습니다.
+테스트 항목과 리포트 확인 방법은 [docs/testing.md](docs/testing.md)를 참고하세요.
 
 ## 소스 구조
 
@@ -87,5 +88,8 @@ src/main/java/com/dayspark/app
 ├── repository   Spring Data JPA
 └── config       Clock, 업로드 경로, 예시 데이터
 src/main/resources/templates   Thymeleaf (공통 내비게이션: fragments/layout.html)
-src/test/java/com/dayspark/app 단위 테스트(domain, model) + 통합 테스트, support/(고정 시계)
+src/test/java/com/dayspark/app
+├── domain       StreakCalculatorTest, ReviewIntervalsTest
+├── model        DareScheduleTest
+└── FocusSessionUnitTests
 ```

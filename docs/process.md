@@ -1,32 +1,20 @@
 # 개발 과정: Git · Issue · PR · CI
 
-## 1. 지금까지의 이력
+## 1. 개발 이력과 현재 구성
 
-버전 관리는 v5.5 시점에 시작했습니다. 그 이전(v1~v5.5)의 변경은 [CHANGELOG.md](CHANGELOG.md)에만 있고,
-**과거 날짜로 꾸민 커밋은 없습니다.** 첫 커밋 `d8df244`이 v5.5 원본 그대로입니다.
+버전별 기능 변경 사항은 [CHANGELOG.md](CHANGELOG.md), 현재 테스트 구성은 [testing.md](testing.md)를 참고합니다.
+프로젝트는 Java 17, Maven Wrapper, Spring Boot와 H2 파일 데이터베이스를 사용합니다.
+현재 저장소의 자동화 테스트는 도메인 단위테스트 4개 클래스(25개 메서드)입니다.
 
-```bash
-git log --oneline --graph      # 브랜치와 병합 구조 보기
-```
+주요 변경 흐름:
 
-| 단계 | 브랜치 / 커밋 | 내용 |
-|---|---|---|
-| 기준선 | `d8df244` | v5.5 그대로 + `.gitattributes` |
-| 환경 | `24d92b1`, `947c3cd` | Java 17 기준 통일, 실행기를 `RUN_DAYSPARK.bat` 하나로 |
-| 테스트 정비 | `98187cc`, `b19812b`, `7c40d8f`, `a0d5215` | 항상 실패/항상 통과하던 테스트 수정, 고정 시계, `now()` 제거 |
-| 버그 수정 | `fix/stats-rate-over-100`, `fix/reset-after-completion`, `fix/overdue-reviews`, `feat/undo-completion` | 브랜치마다 **실패 테스트 → 수정** 2커밋 후 병합 |
-| 규칙 고정 | `rules/explicit-domain-rules` | `StreakCalculator`, `domain-rules.md`, `DomainRuleTests` |
-| 기능 연결 | `feat/focus-auto-complete` | 포모도로 → 진행량 → 자동 완료, 브라우저 재시도 폭주 수정 |
-| 버그 | `fix/category-options` | MIND 카테고리 |
-| 구조 | `refactor/structure` | DTO, `ReviewIntervals`, `StatsService`, 컨트롤러 분리, 오류 처리, fragment, 포맷 |
-| 빌드 | `build/jacoco-ci` | JaCoCo, GitHub Actions |
-| 버그 | `fix/legacy-focus-sessions` | 리팩터링 중 생긴 회귀(완료일 없는 옛 집중 기록) — 테스트 → 수정 |
-| 문서 | `docs/design-and-process` | 요구사항·설계·테스트·과정·한계 문서 |
-| 빌드 | `build/maven-wrapper` | Maven Wrapper 추가 (`RUN_DAYSPARK.bat`이 Maven 설치 없이 실행되도록) |
-| 기능 (v5.7) | `feat/focus-stop-and-switch` | 실패 테스트 `fc92169` → 서버 `21bc4d4` → 화면 `948cee6` → 문서. 중간 종료 시간 기록, 도전 전환 |
-
-이 이력은 로컬에서 만든 뒤 GitHub에 한 번에 올린 것입니다. 그래서 위 브랜치들에는 GitHub의 PR·리뷰 기록이 없습니다.
-**GitHub의 Issue / PR / CI 기록은 저장소를 올린 다음부터 쌓입니다** (아래 3절).
+| 영역 | 내용 |
+|---|---|
+| 실행 환경 | Java 17 기준, `RUN_DAYSPARK.bat`, Maven Wrapper |
+| 도메인 규칙 | `StreakCalculator`, `ReviewIntervals`, 날짜별 일정 처리 |
+| 기능 | 복습 플랜, 포모도로 기록, 중간 종료, 도전 전환 |
+| 구조 | 입력 DTO와 Controller/Service/Repository 분리, 화면용 DTO 정리 |
+| 품질 관리 | JUnit 5 단위테스트, JaCoCo, GitHub Actions |
 
 ## 2. GitHub에 올리기 (최초 1회)
 
@@ -40,7 +28,7 @@ git push -u origin main
 
 그다음 GitHub 설정:
 
-1. **Actions** 탭에서 첫 CI 실행 결과 확인 → [testing.md](testing.md) 4.1 표에 기록
+1. **Actions** 탭에서 첫 CI 실행 결과 확인 → [testing.md](testing.md)의 실행 방법에 따라 기록 확인
 2. **Settings → Branches → Add rule** `main`: "Require a pull request before merging",
    "Require status checks to pass" (CI의 `Build and test (JDK 17)`, `(JDK 25)`) 체크
 3. **Settings → Collaborators**에 팀원 추가
@@ -73,9 +61,9 @@ flowchart LR
 
 ### 지금 만들면 좋은 이슈 (예시)
 
-- [ ] `./mvnw verify` 로컬 실행 결과와 커버리지를 `testing.md` 4.1에 기록
-- [ ] Windows 10/11에서 `RUN_DAYSPARK.bat` 수동 확인 (`testing.md` 5절)
-- [x] 보고서 DOCX의 요구사항·설계·테스트 결과 정리 완료
+- [ ] `./mvnw verify` 로컬 실행 결과와 커버리지를 `testing.md`의 안내에 따라 확인
+- [ ] Windows 10/11에서 `RUN_DAYSPARK.bat` 수동 확인 ([testing.md](testing.md)의 수동 확인 항목)
+- [ ] 보고서의 테스트 실행 결과를 실제 `verify` 출력과 대조
 - [ ] 발표용 화면 캡처 (오늘 / 달력 / 통계 / 집중 타이머 / 복습)
 - [ ] CI 결과를 보고 필요하면 서비스 계층 커버리지 기준(`jacoco:check`) 추가 검토
 
@@ -86,5 +74,5 @@ flowchart LR
 | 단계 | 내용 |
 |---|---|
 | JDK | 17(프로젝트 기준), 25(팀 Windows PC) 두 버전 동시 |
-| 빌드 | `./mvnw -B -ntp verify` (컴파일 → 테스트 68개 → JaCoCo) |
+| 빌드 | `./mvnw -B -ntp verify` (컴파일 → 단위테스트 25개 → JaCoCo) |
 | 결과 | JDK 17 실행 요약에 패키지별 커버리지 표, `jacoco-report`·`surefire-reports-*` 아티팩트 업로드 |
