@@ -1,6 +1,6 @@
 # DaySpark 단위테스트
 
-이 프로젝트에 포함된 자동화 테스트는 **JUnit 5 단위테스트 25개(4개 클래스)**입니다.
+이 프로젝트에 포함된 자동화 테스트는 **JUnit 5 단위테스트 28개(5개 클래스)**입니다.
 Spring 컨텍스트나 데이터베이스를 띄우지 않고 주요 도메인 객체의 규칙을 검사합니다.
 
 ## 실행 방법
@@ -25,7 +25,7 @@ Windows CMD/PowerShell: `mvnw.cmd test` 또는 `mvnw.cmd verify`
 | `domain/StreakCalculatorTest.java` | 6 | 연속 달성일, 오늘 미완료, 실패한 계획일, 쉬는 날, 시작일 및 최대 탐색 기간 |
 | `domain/ReviewIntervalsTest.java` | 6 | 입력 정렬, 중복 제거, 전각 쉼표, 빈 값·숫자 오류, 간격 범위, 최대 12개 |
 | `model/DareScheduleTest.java` | 5 | 반복 요일, 계획 기간, 쉬기 시작일 경계, 요일 표시, 복습 설정 저장 |
-| `FocusSessionUnitTests.java` | 8 | 일시정지·재개·완료 조건, 취소 및 종료 상태, 실제 집중 시간, 날짜 경계 |
+| `FocusSessionUnitTests.java` | 9 | 일시정지·재개·완료 조건, 취소 및 종료 상태, 실제 집중 시간, 날짜 경계 |
 | **총계** | **25** | **JUnit 5 `@Test` 메서드 수** |
 
 ## 테스트 방식과 범위
@@ -33,9 +33,10 @@ Windows CMD/PowerShell: `mvnw.cmd test` 또는 `mvnw.cmd verify`
 - `StreakCalculator`와 `ReviewIntervals`: 규칙·정규화·예외 입력을 확인합니다.
 - `Dare`: 반복 일정과 쉬기 시작일, 복습 설정의 상태를 확인합니다.
 - `FocusSession`: 고정된 `Instant`를 직접 입력해 경과 시간, 일시정지 구간, 상태 전환, 자정 경계를 확인합니다.
+- `FocusService`: Mockito로 저장소와 진행량 서비스를 대체해 핵심 서비스 동작을 검증합니다.
 - 모든 테스트는 외부 시간 대기, 실제 파일 DB, HTTP 요청 없이 실행되도록 작성했습니다.
 
-현재 자동화 검증은 위 도메인 객체를 중심으로 합니다. Controller·Service·Repository를 연결한
+현재 자동화 검증은 위 도메인 객체와 `FocusService` 일부를 중심으로 합니다. Controller·Service·Repository를 연결한
 전체 사용 흐름과 실제 데이터 저장·조회는 이 테스트 목록만으로 확인되지 않습니다.
 필요한 기능은 실행 후 수동으로 확인해야 합니다.
 

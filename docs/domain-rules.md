@@ -115,4 +115,4 @@
 6. 브라우저는 finish가 실패하면 서버의 현재 세션 상태로 다시 맞추고, 5초 뒤에만 재시도합니다.
    (이전에는 실패 시 6초 동안 finish를 1,000번 넘게 호출했습니다.)
 
-- 단위테스트: `FocusSessionUnitTests` (8개). 서비스의 진행량·자동 완료 연결은 별도 확인 필요.
+- 단위테스트: `FocusSessionUnitTests` (9개), `FocusServiceUnitTests` (2개). 서비스의 진행량 반영 여부는 Mockito로 확인하며 실제 데이터베이스 동작은 별도 확인 필요.

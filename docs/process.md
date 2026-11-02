@@ -4,7 +4,7 @@
 
 버전별 기능 변경 사항은 [CHANGELOG.md](CHANGELOG.md), 현재 테스트 구성은 [testing.md](testing.md)를 참고합니다.
 프로젝트는 Java 17, Maven Wrapper, Spring Boot와 H2 파일 데이터베이스를 사용합니다.
-현재 저장소의 자동화 테스트는 도메인 단위테스트 4개 클래스(25개 메서드)입니다.
+현재 저장소의 자동화 테스트는 도메인 단위테스트 5개 클래스(28개 메서드)입니다.
 
 주요 변경 흐름:
 
@@ -74,5 +74,5 @@ flowchart LR
 | 단계 | 내용 |
 |---|---|
 | JDK | 17(프로젝트 기준), 25(팀 Windows PC) 두 버전 동시 |
-| 빌드 | `./mvnw -B -ntp verify` (컴파일 → 단위테스트 25개 → JaCoCo) |
+| 빌드 | `./mvnw -B -ntp verify` (컴파일 → 단위테스트 28개 → JaCoCo) |
 | 결과 | JDK 17 실행 요약에 패키지별 커버리지 표, `jacoco-report`·`surefire-reports-*` 아티팩트 업로드 |

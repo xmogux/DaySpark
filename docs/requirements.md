@@ -121,9 +121,9 @@
 | # | 수용 기준 | 구현 위치 / 단위테스트 |
 |---|---|---|
 | 1 | 계획 시간 전에 종료하면 실제 집중한 시간만 `STOPPED` 세션으로 기록한다. | `FocusSessionUnitTests.stopKeepsTheTimeFocusedAndExcludesPauses` |
-| 2 | 중간 종료 세션은 완료 회차와 목표 진행량에 더하지 않는다. | `FocusService.stop` |
-| 3 | 다른 도전으로 전환하면 기존 세션을 종료해 시간을 보존한 뒤 새 세션을 시작한다. | `FocusService.switchTo` |
-| 4 | 이미 계획 시간이 지난 세션을 종료하면 정상 완료로 처리한다. | `FocusService.stop` |
+| 2 | 중간 종료 세션은 완료 회차와 목표 진행량에 더하지 않는다. | `FocusService.stop`, `FocusServiceUnitTests.onlyCompletedSessionEarnsGoalProgress` |
+| 3 | 다른 도전으로 전환하면 기존 세션을 종료해 시간을 보존한 뒤 새 세션을 시작한다. | `FocusService.switchTo`, `FocusServiceUnitTests.rejectedSwitchDoesNotChangeCurrentSession` |
+| 4 | 이미 계획 시간이 지난 세션을 종료하면 정상 완료로 처리한다. | `FocusService.stop`, `FocusServiceUnitTests.onlyCompletedSessionEarnsGoalProgress` |
 
 ### R12 집중 회차와 화면 복원
 

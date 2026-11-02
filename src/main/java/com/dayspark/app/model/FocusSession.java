@@ -151,9 +151,12 @@ public class FocusSession {
      * started at 23:50 for 25 minutes belongs to the next day.
      */
     public void complete(Instant now, ZoneId zone) {
-        if (FocusStatus.PAUSED.name().equals(status)) resume(now);
-        if (!FocusStatus.RUNNING.name().equals(status)) throw new IllegalStateException("이미 끝난 타이머입니다.");
+        if (!FocusStatus.RUNNING.name().equals(status) && !FocusStatus.PAUSED.name().equals(status)) {
+            throw new IllegalStateException("이미 끝난 타이머입니다.");
+        }
+        // Validate before resuming: a rejected completion must not change a paused session.
         if (remainingMillis(now) > 0) throw new IllegalStateException("집중 시간이 아직 끝나지 않았습니다.");
+        if (FocusStatus.PAUSED.name().equals(status)) resume(now);
         endedAt = now;
         completedDay = expectedCompletedDay(zone);
         status = FocusStatus.COMPLETED.name();

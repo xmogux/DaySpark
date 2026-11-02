@@ -109,4 +109,23 @@ class FocusSessionUnitTests {
         FocusSession s = new FocusSession(d, 25, start);
         assertThat(s.expectedCompletedDay(ZoneId.of("Asia/Seoul"))).isEqualTo(LocalDate.of(2026, 9, 2));
     }
+    @Test
+    void rejectedEarlyCompletionPreservesPausedState() {
+        Instant start = Instant.parse("2026-09-01T03:00:00Z");
+        FocusSession s = session(25, start);
+        Instant pausedAt = start.plusSeconds(5 * 60);
+        s.pause(pausedAt);
+
+        assertThatThrownBy(() -> s.complete(start.plusSeconds(15 * 60), SEOUL))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("아직 끝나지");
+
+        assertThat(s.getStatus()).isEqualTo("PAUSED");
+        assertThat(s.getPausedAt()).isEqualTo(pausedAt);
+        assertThat(s.getPausedMillis()).isZero();
+        assertThat(s.getEndedAt()).isNull();
+        assertThat(s.getCompletedDay()).isNull();
+        assertThat(s.remainingMillis(start.plusSeconds(15 * 60))).isEqualTo(20 * 60_000L);
+    }
+
 }
