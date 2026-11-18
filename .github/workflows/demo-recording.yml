@@ -1,0 +1,68 @@
+name: Actual DaySpark demo recording
+
+on:
+  pull_request:
+    paths:
+      - 'tools/demo_record.py'
+      - '.github/workflows/demo-recording.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser recorder
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+      - name: Run real Spring Boot application
+        shell: bash
+        run: |
+          chmod +x mvnw
+          nohup ./mvnw -B -ntp spring-boot:run > /tmp/dayspark-spring.log 2>&1 &
+          echo $! > /tmp/dayspark-spring.pid
+          for i in $(seq 1 180); do
+            if curl -fsS http://127.0.0.1:8080/ > /tmp/dayspark-home.html; then
+              echo 'Actual DaySpark server listening'
+              break
+            fi
+            sleep 2
+          done
+          if ! curl -fsS http://127.0.0.1:8080/ >/dev/null; then
+            cat /tmp/dayspark-spring.log
+            exit 1
+          fi
+      - name: Record real UI and operations
+        run: python tools/demo_record.py
+      - name: Render MP4 (no audio)
+        if: always()
+        shell: bash
+        run: |
+          if [ -s demo-output/DaySpark_real_browser.webm ]; then
+            ffmpeg -y -i demo-output/DaySpark_real_browser.webm -an -c:v libx264 -pix_fmt yuv420p -crf 23 -preset medium -movflags +faststart -t 145 demo-output/DaySpark_actual_SpringBoot_demo.mp4
+            ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 demo-output/DaySpark_actual_SpringBoot_demo.mp4
+          fi
+      - name: Save actual recording and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dayspark-actual-spring-boot-demo
+          path: |
+            demo-output/
+            /tmp/dayspark-spring.log
+          if-no-files-found: warn
