@@ -1,0 +1,62 @@
+name: Clean projector recording
+
+on:
+  pull_request:
+    paths:
+      - 'tools/demo_clean_projector.py'
+      - '.github/workflows/clean-projector.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Browser and codec
+        run: |
+          python -m pip install playwright imageio-ffmpeg
+          python -m playwright install chromium
+      - name: Korean fonts
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.local/share/fonts"
+          curl -fLSs --retry 3 https://raw.githubusercontent.com/googlefonts/noto-cjk/main/Sans/OTF/Korean/NotoSansCJKkr-Regular.otf -o "$HOME/.local/share/fonts/NotoSansCJKkr-Regular.otf"
+          curl -fLSs --retry 3 https://raw.githubusercontent.com/googlefonts/noto-cjk/main/Sans/OTF/Korean/NotoSansCJKkr-Bold.otf -o "$HOME/.local/share/fonts/NotoSansCJKkr-Bold.otf"
+          fc-cache -f "$HOME/.local/share/fonts"
+      - name: Start original Spring Boot app
+        shell: bash
+        run: |
+          chmod +x mvnw
+          nohup ./mvnw -B -ntp spring-boot:run > /tmp/spring.log 2>&1 &
+          for i in $(seq 1 180); do
+            if curl -fsS http://127.0.0.1:8080/ >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -n 120 /tmp/spring.log
+          exit 1
+      - name: Record original UI
+        run: python tools/demo_clean_projector.py
+      - name: Convert raw to mp4
+        if: always()
+        run: |
+          if test -s demo-output/clean_raw.webm; then
+            $(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())') -y -i demo-output/clean_raw.webm -an -c:v libx264 -pix_fmt yuv420p -preset veryfast -crf 23 -movflags +faststart demo-output/clean_raw.mp4
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dayspark-clean-projector
+          path: demo-output/
+          if-no-files-found: warn
