@@ -26,9 +26,8 @@ jobs:
           python-version: '3.12'
       - name: Install browser recorder
         run: |
-          python -m pip install playwright
+          python -m pip install playwright imageio-ffmpeg
           python -m playwright install chromium
-          command -v ffmpeg
       - name: Run real Spring Boot application
         shell: bash
         run: |
@@ -53,8 +52,7 @@ jobs:
         shell: bash
         run: |
           if [ -s demo-output/DaySpark_real_browser.webm ]; then
-            ffmpeg -y -i demo-output/DaySpark_real_browser.webm -an -c:v libx264 -pix_fmt yuv420p -crf 23 -preset medium -movflags +faststart -t 145 demo-output/DaySpark_actual_SpringBoot_demo.mp4
-            ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 demo-output/DaySpark_actual_SpringBoot_demo.mp4
+            $(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())') -y -i demo-output/DaySpark_real_browser.webm -an -c:v libx264 -pix_fmt yuv420p -crf 23 -preset medium -movflags +faststart -t 145 demo-output/DaySpark_actual_SpringBoot_demo.mp4
           fi
       - name: Save actual recording and logs
         if: always()
