@@ -1,20 +1,58 @@
-# DaySpark 최소 시스템 테스트 (실제 브라우저 수동 검증)
+# DaySpark 통합·시스템 테스트 실행 및 증빙
 
-이 문서는 **테스트 코드 작성만으로 성공했다고 주장하지 않기 위한** 실행 기록표이다.
-단위·통합 테스트는 자동화하지만, 브라우저 화면과 사용 경험은 직접 확인한다.
+> 이 문서는 테스트 코드를 작성한 것과 **실제로 성공한 것**을 구분한다. 
+> GitHub Actions 실제 실행 근거: [통합 테스트 CI (JDK 17/25)](https://github.com/xmogux/DaySpark/actions/runs/44288366368),
+> [브라우저 시스템 테스트 7개](https://github.com/xmogux/DaySpark/actions/runs/44288308846).
+> 실행 기록은 해당 커밋을 기준으로 하며 이후 코드 변경 시 다시 검증한다.
 
-## 사전 준비
-1. 기존 개인 기록을 보존한다. 시스템 테스트용으로 **별도 복사본이나 별도 DB**에서 앱을 실행한다. 기본 `dayspark_v2` 파일 DB를 테스트 데이터로 오염시키지 않는다.
-2. 테스트 전 서버 로그에 예외가 없는지 확인한다.
-3. 테스트 일시, OS, Java 버전, 브라우저, 커밋 SHA를 기록한다.
+## 검증 환경
 
-| ID | 단계 | 기대 결과 | 실제 결과 | 판정 |
-| --- | --- | --- | --- | --- |
-| SYS-01 | 새 도전 생성: 제목 '시스템검증', 매일 반복, 수치 목표 1회 → 오늘 화면 이동 → 완료 클릭 → 기록 화면 확인 | 오늘 할 일에 표시, 완료 후 기록에 정확히 1건 표시 | 미실행 | 미검증 |
-| SYS-02 | 도전 생성: 목표 1분, 단위 '분' → 집중 타이머 1분 시작 → 종료 → 오늘/통계 확인 | 완료 시 진행량 1분 증가, 목표 자동 완료, 통계/기록 반영 | 미실행 | 미검증 |
-| SYS-03 | 도전 이름 공백 입력 → 저장 → 오류 확인 | 저장되지 않고 사용자에게 오류 메시지 표시 | 미실행 | 미검증 |
+- 자동 통합 테스트: Spring Boot, MockMvc, JPA, 격리된 H2 메모리 DB (개인 DB 사용 안 함)
+- 시스템 테스트: Ubuntu 24.04, JDK 17, Google Chrome + Playwright, 실제 DaySpark 서버 실행
+- 시스템 테스트 DB: `jdbc:h2:file:./target/system-test-db` (운영/개인용 `dayspark_v2`와 분리)
+- 서버/브라우저 시간대: Asia/Seoul
+- 시스템 테스트 증빙: GitHub Actions의 `browser-system-evidence` artifact에 화면 캡처, `results.json`, 서버 로그 보관
 
-* **통과**는 사람이 실제로 실행하고 관찰한 결과만 기재한다.
-* 실패 시 화면 캡처, 실행 시각, 로그, 재현 절차를 남긴다.
-* 통합 자동화 테스트는 `./mvnw test -Dtest=DaySparkIntegrationTest`로 실행한다.
-* 전체 회귀 테스트는 `./mvnw clean verify`로 실행한다.
+## 통합 테스트: 6개 PASS
+
+| ID | 검증 흐름 | 코드 |
+| --- | --- | --- |
+| IT-01 | 도전 생성 HTTP 요청 → DB 저장 → 목록 표시 | `DaySparkIntegrationTest` |
+| IT-02 | 집중 세션 완료 → 진행량 → 자동 완료, 중복 기록 방지 | `DaySparkIntegrationTest` |
+| IT-03 | 일정 예외 SKIP / ADD / RESET → 실제 오늘 화면 표시 | `DaySparkMoreIntegrationTest` |
+| IT-04 | 완료 기록 취소 → DB / 완료 기록 / 월간 통계 원상복구 | `DaySparkMoreIntegrationTest` |
+| IT-05 | 복습 완료/취소 → DB 상태와 복습 상세 UI 반영 | `DaySparkMoreIntegrationTest` |
+| IT-06 | 도전 삭제 → 완료·수치 진행·일정 예외·복습·집중 연관 기록 삭제 | `DaySparkMoreIntegrationTest` |
+
+실행 로그: JDK 17/25 `Tests run: 34, Failures: 0, Errors: 0` (단위 28 + 통합 6).
+ 
+## 브라우저 시스템 테스트: 7개 PASS
+
+| ID | 브라우저에서 실제 수행한 시나리오 | 코드 |
+| --- | --- | --- |
+| SYS-01 | 도전 생성 → 오늘 화면 → 완료 → 완료 기록 | `system_browser_test.cjs` |
+| SYS-02 | 실제 1분 타이머 → 자동 완료 → 통계 | `system_browser_test.cjs` |
+| SYS-03 | 빈 제목 입력 차단 → 서버 유효성 검증 | `system_browser_test.cjs` |
+| SYS-04 | 반복 요일 변경 → 오늘·달력 반영 | `system_browser_more_test.cjs` |
+| SYS-05 | 타이머 일시정지 → 재개 → 중간 종료 | `system_browser_more_test.cjs` |
+| SYS-06 | 복습 일정 설정 → 복습 완료 → 달력 표시 | `system_browser_more_test.cjs` |
+| SYS-07 | 도전 삭제 → 목록·완료 기록 제거 | `system_browser_more_test.cjs` |
+
+위 7개 시나리오는 실제 GitHub Actions의 Chrome에서 모두 `PASS`로 출력되었음.
+단, GitHub 환경에서의 성공은 모든 기기·브라우저에서의 동작을 보장하지 않는다.
+
+## 재실행
+
+```bash
+./mvnw clean verify
+```
+
+브라우저 시스템 테스트는 `.github/workflows/system-browser.yml`에서
+PR과 `main` 푸시마다 실제 서버를 실행한 뒤 다음 스크립트를 실행한다.
+
+```bash
+node scripts/system_browser_test.cjs
+node scripts/system_browser_more_test.cjs
+```
+
+운영 DB는 건드리지 않아야 한다. 버그가 발생하면 오류 스택, 스크린샷, 서버 로그를 증빙에 남긴다.
