@@ -2,7 +2,7 @@ name: Browser system tests
 
 on:
   push:
-    branches: [tests/minimal-integration-system-20261118]
+    branches: [main, tests/expanded-integration-system-20261118]
   pull_request:
 
 permissions:
@@ -12,6 +12,8 @@ jobs:
   browser-system:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      TZ: Asia/Seoul
     steps:
       - uses: actions/checkout@v4
 
@@ -50,8 +52,10 @@ jobs:
           cat target/system-server.log
           exit 1
 
-      - name: Execute real-browser system scenarios
-        run: node scripts/system_browser_test.cjs
+      - name: Execute seven real-browser system scenarios
+        run: |
+          node scripts/system_browser_test.cjs
+          node scripts/system_browser_more_test.cjs
 
       - name: Upload browser evidence and server log
         if: always()
