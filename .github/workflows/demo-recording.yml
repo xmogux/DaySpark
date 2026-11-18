@@ -28,6 +28,15 @@ jobs:
         run: |
           python -m pip install playwright imageio-ffmpeg
           python -m playwright install chromium
+      - name: Install Korean fonts for readable UI and captions
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.local/share/fonts"
+          curl -fLSs --retry 3 https://raw.githubusercontent.com/googlefonts/noto-cjk/main/Sans/OTF/Korean/NotoSansCJKkr-Regular.otf -o "$HOME/.local/share/fonts/NotoSansCJKkr-Regular.otf"
+          curl -fLSs --retry 3 https://raw.githubusercontent.com/googlefonts/noto-cjk/main/Sans/OTF/Korean/NotoSansCJKkr-Bold.otf -o "$HOME/.local/share/fonts/NotoSansCJKkr-Bold.otf"
+          test "$(stat -c%s "$HOME/.local/share/fonts/NotoSansCJKkr-Regular.otf")" -gt 1000000
+          fc-cache -f "$HOME/.local/share/fonts"
+          fc-match 'Noto Sans CJK KR' | head -1
       - name: Run real Spring Boot application
         shell: bash
         run: |
