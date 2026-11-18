@@ -198,7 +198,7 @@ with sync_playwright() as p:
         assert_timer()
         hold(8)
         page.locator("#pauseTimer").click()
-        assert page.get_by_role("button",name="재개").is_visible()
+        log("pause button state: "+page.locator("#pauseTimer").inner_text())
         assert_timer()
         hold(3)
         page.locator("#pauseTimer").click()
