@@ -33,7 +33,7 @@ async function createDare(page, title, targetValue, targetUnit) {
   await page.getByRole('heading', {name: title}).waitFor({state:'visible'});
 }
 (async () => {
- const browser = await chromium.launch({headless:true, args:['--no-sandbox']});
+ const browser = await chromium.launch({channel:'chrome', headless:true, args:['--no-sandbox']});
  const context = await browser.newContext({viewport:{width:1440,height:900}, locale:'ko-KR', timezoneId:'Asia/Seoul', acceptDownloads:false});
  const page = await context.newPage();
  page.setDefaultTimeout(15000);
