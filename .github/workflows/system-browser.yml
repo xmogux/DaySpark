@@ -27,6 +27,12 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install Korean fonts for readable browser screenshots
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-cache -f
+
       - name: Install Playwright (use preinstalled Google Chrome)
         run: npm install --no-save playwright@1.56.1
 
