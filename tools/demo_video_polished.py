@@ -52,11 +52,11 @@ with sync_playwright() as p:
         page.evaluate("window.scrollTo(0,0)")
         hold(.6)
     def centered(locator):
-        locator.scroll_into_view_if_needed(timeout=15000)
-        hold(.7)
+        locator.evaluate("(el) => el.scrollIntoView({behavior: 'smooth', block: 'center'})")
+        hold(1.15)
     def top():
-        page.evaluate("window.scrollTo(0,0)")
-        hold(.7)
+        page.evaluate("window.scrollTo({top:0,behavior:'smooth'})")
+        hold(1.05)
     def timer_visible():
         b=page.locator("#timerVisual").bounding_box()
         c=page.locator(".timer-controls").bounding_box()
@@ -119,7 +119,7 @@ with sync_playwright() as p:
         page.wait_for_load_state("domcontentloaded")
         styling()
         assert "8 / 20" in page.locator(".today-quant").inner_text()
-        centered(page.locator(".today-quant"))
+        top()
         hold(4.0)
 
         stamp("일정 예외","다른 일정이 있는 날은 일회성 휴식일로 설정")
@@ -134,7 +134,7 @@ with sync_playwright() as p:
         styling()
         assert "시험 준비일" in page.locator("body").inner_text()
         box=page.locator("section.panel").filter(has_text="일정 변경·휴식일").first
-        centered(box)
+        top()
         hold(3.0)
 
         stamp("복습 관리","1·3·7·14일 간격으로 복습 완료 체크")
