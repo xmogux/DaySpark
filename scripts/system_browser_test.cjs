@@ -27,7 +27,7 @@ async function createDare(page, title, targetValue, targetUnit) {
   await page.locator('input[name="targetValue"]').fill(String(targetValue));
   await page.locator('select[name="targetUnit"]').selectOption({label: targetUnit});
   await Promise.all([
-    page.waitForURL('**/challenges', {timeout: 15000}),
+    page.waitForURL(url => url.pathname.startsWith('/challenges') && !url.pathname.startsWith('/challenges/new'), {timeout: 15000}),
     page.getByRole('button', {name: /도전 만들기/}).click()
   ]);
   await page.getByRole('heading', {name: title}).waitFor({state:'visible'});
