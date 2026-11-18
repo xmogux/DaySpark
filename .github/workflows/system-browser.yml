@@ -2,7 +2,7 @@ name: Browser system tests
 
 on:
   push:
-    branches: [main, tests/expanded-integration-system-20261118]
+    branches: [main]
   pull_request:
 
 permissions:
