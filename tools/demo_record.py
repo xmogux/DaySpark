@@ -73,7 +73,7 @@ with sync_playwright() as p:
         page.locator("#reviewIntervals").fill("1,3,7,14")
         hold(6)
         page.get_by_role("button", name="도전 만들기").click()
-        page.wait_for_url("**/challenges")
+        page.wait_for_load_state("domcontentloaded")
         assert page.get_by_text(NAME).count() > 0, "Created challenge not visible"
         caption("목표 저장 완료", "입력한 반복 일정이 도전 목록에 반영된 것을 확인")
         hold(5)
@@ -82,7 +82,7 @@ with sync_playwright() as p:
         card = page.locator(".manage-card").filter(has_text=NAME)
         assert card.count() == 1
         card.get_by_role("link", name="상세·통계").click()
-        page.wait_for_url("**/challenges/*")
+        page.wait_for_load_state("domcontentloaded")
         caption("02. 수치 진행량 기록", "입력·저장 후 진행률이 실제 서버 DB에 반영")
         page.locator('input[name="amount"]').fill("10")
         hold(2)
