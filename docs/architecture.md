@@ -1,7 +1,6 @@
 # DaySpark 설계
 
-GitHub에서 이 파일을 열면 Mermaid 다이어그램이 그림으로 보입니다.
-보고서(Word)에 넣을 때는 [mermaid.live](https://mermaid.live)에 코드 블록을 붙여 PNG/SVG로 내보내세요.
+이 문서의 시스템 구조, 클래스 관계 및 처리 흐름은 Mermaid 다이어그램으로 표현했다.
 
 ## 1. 계층 구조
 

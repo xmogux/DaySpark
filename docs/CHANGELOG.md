@@ -40,7 +40,7 @@ DaySpark의 기능 추가와 주요 오류 수정 내역을 버전별로 기록�
 - 정상 완료된 집중 시간을 수치 진행량에 반영하고, 계획된 날짜에 목표를 처음 달성하면 자동 완료하도록 연결했다.
 - 도전 입력을 `DareRequest`로 통합하고, 복습 간격 검증과 연속 달성일 계산을 각각 `ReviewIntervals`, `StreakCalculator`로 분리했다.
 - 화면별 통계 계산을 `StatsService`에서 처리하도록 정리했다.
-- Java 17, Maven Wrapper 및 GitHub Actions 기반 자동 테스트 환경을 구성했다.
+- Java 17, Maven Wrapper 및 JUnit·Chrome 자동 테스트 환경을 구성했다.
 
 ## v5.7.0 — 집중 시간 기록 및 데이터 일관성 강화
 

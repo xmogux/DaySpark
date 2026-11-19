@@ -2,7 +2,7 @@
 
 반복 목표를 오늘의 할 일로 정리하고 **완료·진행량·집중 시간·복습·달력·통계**를 하나의 화면 흐름으로 관리하는 단일 사용자용 로컬 웹 애플리케이션입니다. 소프트웨어공학·객체지향 설계 프로젝트입니다.
 
-> **공식 기준:** GitHub `main` 브랜치의 소스와 테스트. 테스트 구성은 **총 48개(단위 28개 + 통합 6개 + 실제 Chrome 브라우저 시스템 14개)**이며, GitHub Actions에서 실행합니다.
+> **테스트 실행:** Windows에서 `RUN_ALL_TESTS.bat`를 더블클릭하면 **단위 28개 + 통합 6개 + Chrome 시스템 14개 = 총 48개**가 순서대로 실행되고, 결과는 `test-results/summary.html`에 저장됩니다.
 
 ## 주요 기능
 
@@ -20,12 +20,12 @@
 | 항목 | 현재 사용 |
 | --- | --- |
 | 프로젝트 | DaySpark **5.7.0** |
-| Java | **17** 기준(`pom.xml`); CI는 JDK 17·25에서 확인 |
+| Java | **17 이상** (`pom.xml` 기준 17) |
 | 서버 | Spring Boot **3.5.16** / Spring MVC / Thymeleaf |
 | 데이터 | Spring Data JPA + H2 **파일 DB** |
 | 웹 화면 | HTML·CSS·JavaScript, 서버 렌더링 Thymeleaf |
 | 빌드 및 테스트 | Maven Wrapper / JUnit 5 / Mockito / MockMvc / JaCoCo / Playwright |
-| 자동 검증 | GitHub Actions: Java CI + Chrome 브라우저 시스템 테스트 |
+| 자동 검증 | `RUN_ALL_TESTS.bat` → JUnit 34개 + Windows Chrome 14개 |
 | 사용 환경 | 개인 PC, 기본 `127.0.0.1:8080`, 로그인/다중 사용자 미지원 |
 
 요청은 `Controller/FocusApi → Service → Repository → H2` 순서로 처리합니다. 집중·완료·복습 데이터는 H2에 저장하고, 업로드한 이미지는 `uploads/`에 저장하며 DB에는 그 경로를 보관합니다. 브라우저 `localStorage`는 집중 UI 설정을 보조적으로 저장합니다.
@@ -44,35 +44,34 @@ JDK 17 이상이 필요합니다. Maven은 별도 설치하지 않아도 되지�
 
 빈 DB를 처음 실행하면 예시 도전 4개가 자동 생성됩니다. 비활성화하려면 `app.seed-demo-data=false`를 설정하세요. 날짜·시간 계산은 `Asia/Seoul` 기준입니다.
 
-## 테스트: 공식 48개
+## Windows에서 48개 테스트 한 번에 실행
 
-| 유형 | 개수 | 실행 도구 | 확인 대상 |
-| --- | ---: | --- | --- |
-| 단위 테스트 | **28** | JUnit 5 / Mockito | 연속 달성일, 복습 간격, 반복 일정, 집중 상태와 서비스 규칙 |
-| 통합 테스트 | **6** | Spring Boot / MockMvc / JPA / 격리 H2 | 도전 저장, 집중·자동 완료, 일정 예외·과거 쉬기 기록, 사진 포함 완료 취소, 복습, 연관 기록 삭제 |
-| 시스템 테스트 | **14** | Playwright / 실제 Chrome / Spring Boot | 실제 브라우저 사용자 흐름과 사진 형식 검증 |
-| **총계** | **48** | **GitHub Actions** | **서로 다른 테스트 실행 항목 48개** |
+DaySpark 폴더에서 **`RUN_ALL_TESTS.bat`를 더블클릭**합니다. Java 테스트와 Chrome 테스트를 차례로 실행한 뒤 결과 페이지를 자동으로 엽니다.
 
-단위·통합 테스트는 동일한 Java 테스트 34개를 JDK 17과 25에서 각각 실행합니다. **반복 실행을 새로운 테스트 개수로 중복 집계하지 않습니다.** 비슷한 기능을 여러 테스트 수준에서 확인하는 경우가 있으며 48가지의 서로 다른 제품 기능을 뜻하지는 않습니다.
+| 구분 | 개수 | 검증 내용 |
+| --- | ---: | --- |
+| 단위 테스트 | 28 | 연속 달성일, 복습 간격, 반복 일정, 집중 상태와 계산 규칙 |
+| 통합 테스트 | 6 | HTTP·Service·JPA·H2를 연결한 저장·완료·취소·복습·삭제 |
+| Chrome 시스템 테스트 | 14 | 실제 브라우저에서 수행하는 SYS-01부터 SYS-14까지의 사용자 동작 |
+| **총계** | **48** | **모든 결과를 하나의 보고서로 집계** |
 
-**로컬에서 Java 테스트 34개 실행** (Windows PowerShell):
+**준비물:** Windows 10/11, JDK 17 이상, Google Chrome. Node.js가 없으면 실행기가 검증된 공식 배포본을 `.tools/` 아래에 자동으로 준비하고, Playwright도 처음 실행할 때 설치합니다. 최초 실행에는 인터넷 연결이 필요할 수 있습니다.
 
-```powershell
-.\mvnw.cmd clean verify
+**실행 결과는 실제 테스트 출력에서 생성**되며, 실패·미실행 항목을 성공으로 계산하지 않습니다. 프로그램 실행용 `RUN_DAYSPARK.bat`와 테스트용 `RUN_ALL_TESTS.bat`는 별개입니다.
+
+```text
+test-results/
+  summary.html       전체 결과 및 개별 테스트 목록
+  summary.txt        PASS/FAIL 요약
+  junit/             단위·통합 테스트 JUnit XML
+  browser/           시스템 테스트 결과 JSON·화면 캡처
+  coverage/          JaCoCo 코드 커버리지
+  logs/              테스트·서버 실행 로그
 ```
 
-**WSL/Linux:**
+시스템 테스트는 **개인 기록용 `dayspark_v2.mv.db`와 `uploads/`를 사용하지 않습니다.** 별도의 H2 DB와 업로드 폴더를 `target/`에 만들어 사용하며, 결과물은 Git에 포함되지 않도록 설정되어 있습니다.
 
-```bash
-./mvnw clean verify
-```
-
-로컬 명령은 **Java 테스트 34개만** 실행합니다. 브라우저 시스템 테스트 14개는 `.github/workflows/system-browser.yml`에서 실제 Chrome과 격리 DB를 사용해 별도로 자동 실행합니다. JaCoCo 리포트는 `target/site/jacoco/index.html`, JUnit 결과는 `target/surefire-reports/`에서 확인합니다. 테스트 결과는 실행된 커밋과 CI 로그를 기준으로 판단합니다.
-
-- [48개 테스트 상세·실행 증빙](docs/TEST_VERIFICATION_2026-11-19.md)
-- [실행 방법 및 종류별 설명](docs/testing.md)
-- [Java CI](https://github.com/xmogux/DaySpark/actions/workflows/ci.yml)
-- [브라우저 시스템 테스트 CI](https://github.com/xmogux/DaySpark/actions/workflows/system-browser.yml)
+상세 내용: [테스트 실행 방법과 시나리오](docs/testing.md)
 
 ## 프로젝트 문서
 
@@ -81,7 +80,6 @@ JDK 17 이상이 필요합니다. Maven은 별도 설치하지 않아도 되지�
 | [요구사항](docs/requirements.md) | 기능·비기능 요구사항 및 수용 기준 |
 | [업무 규칙](docs/domain-rules.md) | 완료·반복·Streak·복습·타이머 규칙 |
 | [시스템 설계](docs/architecture.md) | 계층·UML·ERD·시퀀스·상태 모델 |
-| [검증 결과](docs/TEST_VERIFICATION_2026-11-19.md) | 공식 48개 테스트의 범위와 실행 근거 |
 | [변경 이력](docs/CHANGELOG.md) | 버전별 기능 변경 |
 
 ## 소스 구성
@@ -103,15 +101,15 @@ src/test/java/com/dayspark/app/
   domain/              규칙 테스트
   model/               일정 테스트
   *IntegrationTest.java 통합 테스트
+RUN_ALL_TESTS.bat
 scripts/
+  run_all_tests.ps1
+  write_test_report.ps1
   system_browser_test.cjs
   system_browser_more_test.cjs
   system_browser_critical_test.cjs
-.github/workflows/
-  ci.yml
-  system-browser.yml
 ```
 
 ## 검증 범위의 한계
 
-48개 통과는 **해당 코드와 CI 실행 환경**에서의 결과입니다. 개인 Windows PC에서의 모든 사용자 동작, 타 브라우저 호환성, 대규모 부하, 장기 실행, 접근성 및 사용자 만족도까지 검증했다고 해석하면 안 됩니다.
+48개 테스트 실행은 **현재 Windows PC에서 실행한 결과 파일**로 판정합니다. 다른 브라우저, 대규모 부하, 장기 실행, 접근성 및 사용자 만족도까지 검증했다고 해석하면 안 됩니다.
