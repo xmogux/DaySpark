@@ -52,8 +52,7 @@ public class ProgressService {
 
     /**
      * Minutes earned by a finished focus session. Counted only for '분' goals on a day the challenge
-     * is planned; otherwise the session is kept as focus history only. Never throws, so finishing a
-     * session cannot fail because of the goal.
+     * is planned; otherwise the session is kept as focus history only. Goal-rule checks do not throw; database failures can still propagate.
      */
     @Transactional
     public void focusEarned(Dare dare, LocalDate day, int minutes) {

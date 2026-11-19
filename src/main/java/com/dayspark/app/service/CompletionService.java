@@ -66,7 +66,7 @@ public class CompletionService {
 
     /**
      * Completes {@code dare} on {@code date} because its numeric target was reached. Does nothing
-     * (and never throws) when the day is not planned or a completion already exists.
+     * for invalid plans or an existing completion; persistence failures still propagate.
      */
     @Transactional
     public Optional<Completion> autoComplete(Dare dare, LocalDate date) {
