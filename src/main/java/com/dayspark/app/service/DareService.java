@@ -142,6 +142,7 @@ public class DareService {
         if (dare.isActive()) {
             dare.pauseFrom(LocalDate.now(clock));
         } else {
+            planning.preservePausedDays(dare, dare.getPausedFrom(), LocalDate.now(clock));
             dare.resume();
         }
         return dareRepository.save(dare);
@@ -156,7 +157,7 @@ public class DareService {
             .stream()
             .filter(c -> c.getDare().getId().equals(id))
             .map(Completion::getImagePath)
-            .forEach(images::deleteQuietly);
+            .forEach(images::deleteAfterCommit);
         focusRepository.deleteAllByDareId(id);
         progressRepository.deleteAllByDareId(id);
         reviewRecordRepository.deleteAllByDareId(id);

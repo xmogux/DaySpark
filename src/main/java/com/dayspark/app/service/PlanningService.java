@@ -7,7 +7,14 @@ import com.dayspark.app.repository.CompletionRepository;
 import com.dayspark.app.repository.ScheduleExceptionRepository;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +39,36 @@ public class PlanningService {
 
     public java.util.List<ScheduleException> forDare(Long id) {
         return exceptions.findByDareIdOrderByDayDesc(id);
+    }
+
+    /**
+     * Turn past paused dates into explicit SKIP days when resuming a challenge.
+     * Otherwise clearing Dare.pausedFrom retroactively changes historical statistics.
+     */
+    @Transactional
+    public void preservePausedDays(Dare dare, LocalDate pausedFrom, LocalDate resumeDate) {
+        if (pausedFrom == null || !pausedFrom.isBefore(resumeDate)) return;
+        Set<LocalDate> completedDays = completions
+            .findByDareIdAndChallengeDateBetween(dare.getId(), pausedFrom, resumeDate.minusDays(1))
+            .stream()
+            .map(c -> c.getChallengeDate())
+            .collect(Collectors.toCollection(HashSet::new));
+        Map<LocalDate, ScheduleException> saved = new HashMap<>();
+        for (ScheduleException existing : exceptions.findByDareIdOrderByDayDesc(dare.getId())) {
+            saved.put(existing.getDay(), existing);
+        }
+        List<ScheduleException> changes = new ArrayList<>();
+        for (LocalDate day = pausedFrom; day.isBefore(resumeDate); day = day.plusDays(1)) {
+            if (!dare.isWithinDateRange(day) || completedDays.contains(day)) continue;
+            ScheduleException existing = saved.get(day);
+            if (existing == null) {
+                changes.add(new ScheduleException(dare, day, ScheduleMode.SKIP.name(), "도전 쉬기 기간"));
+            } else if (!ScheduleMode.SKIP.name().equals(existing.getMode())) {
+                existing.update(ScheduleMode.SKIP.name(), "도전 쉬기 기간");
+                changes.add(existing);
+            }
+        }
+        exceptions.saveAll(changes);
     }
 
     @Transactional

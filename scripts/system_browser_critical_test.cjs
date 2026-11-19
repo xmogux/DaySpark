@@ -212,6 +212,18 @@ function summary(page){return page.request.get(BASE+'/api/focus/summary').then(r
     ]);
     assert.match(await page.locator('.toast.error').innerText(),/JPG|PNG|WEBP|GIF/);
     assert.equal(await page.locator('.task-card.completed').filter({has:page.getByRole('heading',{name:title})}).count(),0);
+    const taskAgain=await homeTask(page,title);
+    await taskAgain.locator('button.complete-trigger').click();
+    await page.locator('#completeModal[aria-hidden="false"]').waitFor();
+    await page.locator('#image').setInputFiles({
+      name:'disguised.png',mimeType:'image/png',buffer:Buffer.from('not a PNG')
+    });
+    await Promise.all([
+      page.waitForURL(u=>u.pathname==='/',{timeout:15000}),
+      page.locator('#completeModal form button[type=submit]').click()
+    ]);
+    assert.match(await page.locator('.toast.error').innerText(),/실제 파일 형식/);
+    assert.equal(await page.locator('.task-card.completed').filter({has:page.getByRole('heading',{name:title})}).count(),0);
     await screenshot(page,'sys14-invalid-photo');
   });
  } finally {

@@ -51,12 +51,14 @@ public class CompletionService {
         return ids;
     }
 
+    @Transactional
     public Completion complete(Dare dare, LocalDate date, String note, MultipartFile image) throws IOException {
         if (!planning.isScheduled(dare, date)) throw new IllegalArgumentException("오늘 예정된 도전이 아닙니다.");
         Optional<Completion> existing = find(dare.getId(), date);
         if (existing.isPresent()) return existing.get();
 
         String imagePath = images.save(image);
+        images.deleteOnRollback(imagePath);
         String cleanNote = note == null ? "" : note.trim();
         if (cleanNote.length() > 300) cleanNote = cleanNote.substring(0, 300);
         return completionRepository.save(new Completion(dare, date, cleanNote, imagePath, LocalDateTime.now(clock)));
@@ -84,7 +86,7 @@ public class CompletionService {
             new IllegalArgumentException("취소할 완료 기록이 없습니다.")
         );
         completionRepository.delete(completion);
-        images.deleteQuietly(completion.getImagePath());
+        images.deleteAfterCommit(completion.getImagePath());
     }
 
     public List<Completion> history() {

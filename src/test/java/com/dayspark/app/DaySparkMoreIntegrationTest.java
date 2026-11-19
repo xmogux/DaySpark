@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.model.FocusSession;
+import com.dayspark.app.model.ScheduleException;
 import com.dayspark.app.repository.CompletionRepository;
 import com.dayspark.app.repository.DareRepository;
 import com.dayspark.app.repository.FocusSessionRepository;
@@ -23,11 +24,15 @@ import com.dayspark.app.service.StatsService;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.mock.web.MockMultipartFile;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
 /**
  * Four additional integration scenarios, using real MVC -> service -> JPA -> isolated H2.
@@ -90,6 +95,23 @@ class DaySparkMoreIntegrationTest {
             .andExpect(status().is3xxRedirection());
         assertThat(scheduleExceptions.findByDareIdAndDay(dare.getId(), today)).isEmpty();
         assertThat(planning.isScheduled(dare, today)).isTrue();
+
+        // Regression: historical paused days remain skipped after resuming, including an old ADD.
+        Dare paused = newDare("IT03 과거 휴식일 유지", "회", 1);
+        LocalDate pauseStart = today.minusDays(3);
+        paused.pauseFrom(pauseStart);
+        paused = dares.saveAndFlush(paused);
+        scheduleExceptions.saveAndFlush(new ScheduleException(paused, today.minusDays(1), "ADD", "과거 추가"));
+        mvc.perform(post("/challenges/{id}/toggle", paused.getId()))
+            .andExpect(status().is3xxRedirection());
+        Dare resumed = dares.findById(paused.getId()).orElseThrow();
+        assertThat(resumed.isActive()).isTrue();
+        assertThat(planning.isScheduled(resumed, pauseStart)).isFalse();
+        assertThat(planning.isScheduled(resumed, today.minusDays(2))).isFalse();
+        assertThat(planning.isScheduled(resumed, today.minusDays(1))).isFalse();
+        assertThat(planning.isScheduled(resumed, today)).isTrue();
+        assertThat(scheduleExceptions.findByDareIdAndDay(resumed.getId(), today.minusDays(1)))
+            .get().extracting(ScheduleException::getMode).isEqualTo("SKIP");
     }
 
     @Test
@@ -98,9 +120,17 @@ class DaySparkMoreIntegrationTest {
         Dare dare = newDare("IT04 완료 취소 통계", "회", 1);
         long monthBefore = stats.overview(today).monthDone();
 
-        mvc.perform(post("/complete").param("dareId", dare.getId().toString())
+        byte[] png = java.util.Base64.getDecoder().decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9YKJt0QAAAAASUVORK5CYII="
+        );
+        MockMultipartFile photo = new MockMultipartFile("image", "photo.png", "image/png", png);
+        mvc.perform(multipart("/complete").file(photo).param("dareId", dare.getId().toString())
                 .param("note", "integration-undo-marker"))
             .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/"));
+        String imagePath = completions.findByDareIdAndChallengeDate(dare.getId(), today)
+            .orElseThrow().getImagePath();
+        Path storedImage = Path.of("target/test-uploads/more-integration", imagePath.substring("/uploads/".length()));
+        assertThat(Files.exists(storedImage)).isTrue();
         assertThat(completions.findByDareIdAndChallengeDate(dare.getId(), today)).isPresent();
         assertThat(stats.overview(today).monthDone()).isEqualTo(monthBefore + 1);
         mvc.perform(get("/history")).andExpect(status().isOk())
@@ -109,6 +139,7 @@ class DaySparkMoreIntegrationTest {
         mvc.perform(post("/complete/undo").param("dareId", dare.getId().toString()))
             .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/"));
         assertThat(completions.findByDareIdAndChallengeDate(dare.getId(), today)).isEmpty();
+        assertThat(Files.exists(storedImage)).isFalse();
         assertThat(stats.overview(today).monthDone()).isEqualTo(monthBefore);
         mvc.perform(get("/history")).andExpect(status().isOk())
             .andExpect(content().string(not(containsString("integration-undo-marker"))));

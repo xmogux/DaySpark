@@ -12,5 +12,6 @@ public interface CompletionRepository extends JpaRepository<Completion, Long> {
     List<Completion> findByChallengeDateBetweenOrderByChallengeDateAsc(LocalDate start, LocalDate end);
     List<Completion> findAllByOrderByChallengeDateDescCompletedAtDesc();
     long countByChallengeDateBetween(LocalDate start, LocalDate end);
+    List<Completion> findByDareIdAndChallengeDateBetween(Long dareId, LocalDate start, LocalDate end);
     void deleteAllByDare_Id(Long dareId);
 }
