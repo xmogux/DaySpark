@@ -104,12 +104,12 @@
     $("timerVisual").classList.toggle("break-mode", resting);
     $("timerMode").textContent =
       phase === "preview" || phase === "previewpaused"
-        ? "15 SECOND PREVIEW"
+        ? "15초 미리보기"
         : resting
-          ? "REST & RESET"
+          ? "휴식 중"
           : phase === "idle"
-            ? "READY TO FOCUS"
-            : "FOCUS IN PROGRESS";
+            ? "집중 준비"
+            : "집중 진행 중";
   }
   function configDisabled() {
     for (const id of ["focusMinutes", "breakMinutes", "repeatCount"]) $(id).disabled = phase !== "idle";
@@ -154,12 +154,12 @@
     $("resetTimer").textContent = previewing ? "테스트 종료" : resting ? "반복 종료" : "종료 및 기록";
     preview.disabled = phase !== "idle";
     $("focusPhase").textContent = previewing
-      ? "VISUAL TEST"
+      ? "시각 테스트"
       : resting
-        ? "BREAK TIME"
+        ? "휴식 시간"
         : phase === "idle"
-          ? "GET READY"
-          : "FOCUS MODE";
+          ? "준비"
+          : "집중 모드";
     $("roundLabel").textContent = previewing
       ? "15초 · 저장 안 함"
       : `${round} / ${plan?.repeats || $("repeatCount").value}회차`;

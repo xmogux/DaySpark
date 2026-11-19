@@ -18,6 +18,8 @@ JUnit 34개는 JDK 17과 25 각각에서 재실행했으며 동일한 테스트�
 
 ## 실제 GitHub Actions 증빙
 
+**수정 코드 검증:** 커밋 `75247fc`에서 [Java CI JDK 17·25](https://github.com/xmogux/DaySpark/actions/runs/44536227536)와 [Chrome 시스템 테스트 14개](https://github.com/xmogux/DaySpark/actions/runs/44536226641)가 모두 성공했습니다. 아래 발췌 로그는 이전 커밋을 대상으로 한 독립적인 원문 증빙입니다.
+
 | 실행 | 검증 | 결과 | 확인된 로그 |
 | --- | --- | --- | --- |
 | [Java CI 실행 #44512438749](https://github.com/xmogux/DaySpark/actions/runs/44512438749) | JDK 17 | PASS | `Tests run: 34, Failures: 0, Errors: 0, Skipped: 0` |
@@ -45,8 +47,8 @@ JUnit 34개는 JDK 17과 25 각각에서 재실행했으며 동일한 테스트�
 | --- | --- | --- |
 | IT-01 | 도전 생성 요청 → DB 저장 → 목록 조회 | PASS |
 | IT-02 | 집중 완료 → 진행량 → 자동 완료(중복 방지) | PASS |
-| IT-03 | 일정 예외 SKIP/ADD/RESET → 화면 반영 | PASS |
-| IT-04 | 완료 기록 취소 → DB·이력·통계 갱신 | PASS |
+| IT-03 | 일정 예외 SKIP/ADD/RESET 및 재개 후 휴식일 보존 | PASS |
+| IT-04 | 사진 포함 완료 취소 → DB·이력·통계 및 사진 파일 정리 | PASS |
 | IT-05 | 복습 완료·취소 → DB·상세 화면 반영 | PASS |
 | IT-06 | 도전 삭제 → 연관 기록 정리 | PASS |
 
@@ -67,7 +69,7 @@ JUnit 34개는 JDK 17과 25 각각에서 재실행했으며 동일한 테스트�
 | SYS-11 | 진행 중 도전 A → B 전환 | PASS |
 | SYS-12 | 집중 도중 새로고침 → 서버 세션 복원 | PASS |
 | SYS-13 | 1분 × 2회 실제 경과 → 시간·횟수 누적 | PASS |
-| SYS-14 | 허용되지 않은 사진 확장자 거부 | PASS |
+| SYS-14 | 금지 확장자·실제 내용이 이미지가 아닌 위장 PNG 거부 | PASS |
 
 ## 검증의 한계
 

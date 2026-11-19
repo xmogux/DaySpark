@@ -1028,7 +1028,7 @@ select {
     width: 90%;
   }
 }
-/* DaySpark v3: quantifiable habits and visual focus mode */
+/* Numeric goals and focus timer */
 .focus-promo {
   padding: 30px 34px;
   border-radius: 27px;
@@ -1498,7 +1498,7 @@ select {
   }
 }
 
-/* v4: full-duration progress AND an unmistakable second-by-second sweep */
+/* Full-duration and per-second focus progress */
 .timer-ring {
   width: min(100%, 350px);
   margin: 10px auto 2px;
@@ -1640,7 +1640,7 @@ select {
   }
 }
 
-/* DaySpark v5.2: make challenge cards robust at desktop, tablet, mobile sizes.
+/* Responsive challenge cards.
    IMPORTANT: malformed <i/> HTML markup was corrected in all Thymeleaf templates. */
 .task-list {
   display: flex;
@@ -1705,10 +1705,7 @@ select {
   }
 }
 
-/* v5.3: layout guard and diagnostic fingerprint */
-:root {
-  --dayspark-build: "dayspark-ui-5.3-layout-repair";
-}
+/* Task-card layout guard. Later breakpoints intentionally refine these selectors. */
 .task-list {
   width: 100%;
   min-width: 0;
@@ -1785,7 +1782,7 @@ select {
   }
 }
 
-/* DaySpark 5.4 — calendar redesign. Scoped selectors keep the rest of the app unchanged. */
+/* Scoped monthly calendar styles */
 .calendar-page {
   background: #f5f4ed;
 }
@@ -2318,7 +2315,7 @@ select {
   white-space: nowrap;
 }
 
-/* v5.4: matching calendar daily record detail */
+/* Calendar day-detail view */
 .cal-detail-back {
   display: inline-block;
   color: #6d805b;
@@ -2559,7 +2556,7 @@ select {
   }
 }
 
-/* v5.5: configurable study review plans */
+/* Study review plan styles */
 .review-settings {
   display: none;
   border: 1px solid #dde5d3;
@@ -2847,7 +2844,7 @@ select {
   color: #596650;
 }
 
-/* v5.6: overdue reviews stay on the home screen */
+/* Overdue review reminders */
 .review-home-card .review-overdue {
   color: #a2643d;
   font-weight: 900;

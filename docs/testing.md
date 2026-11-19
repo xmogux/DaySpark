@@ -28,8 +28,8 @@
 | --- | --- |
 | IT-01 | 도전 등록 HTTP → H2 저장 → 목록 조회 |
 | IT-02 | 집중 완료 → 진행량 → 자동 완료(중복 차단) |
-| IT-03 | 일정 예외 SKIP/ADD/RESET → 화면 표시 |
-| IT-04 | 완료 취소 → 기록/통계 반영 |
+| IT-03 | 일정 예외 및 재개 후 과거 휴식일 보존 → 화면 표시 |
+| IT-04 | 사진을 포함한 완료 취소 → 기록/통계 반영·사진 파일 삭제 |
 | IT-05 | 복습 완료/취소 → DB 및 화면 |
 | IT-06 | 도전 삭제 → 관련 기록 정리 |
 
@@ -37,7 +37,7 @@
 
 ## 실제 Chrome 시스템 테스트 14개
 
-SYS-01~SYS-14는 실제 Spring Boot 앱을 구동하고 Playwright로 브라우저 UI를 검사합니다. 개별 시나리오 및 통과 증빙은 [공식 테스트 검증 보고서](TEST_VERIFICATION_2026-11-19.md)에 정리되어 있으며, 실행 스크립트는 `scripts/system_browser_test.cjs`, `scripts/system_browser_more_test.cjs`, `scripts/system_browser_critical_test.cjs`입니다.
+SYS-01~SYS-14는 실제 Spring Boot 앱을 구동하고 Playwright로 브라우저 UI를 검사합니다. SYS-14에서는 금지 확장자 및 위장 PNG(확장자만 이미지)를 모두 거부하는지 확인합니다. 개별 시나리오 및 통과 증빙은 [공식 테스트 검증 보고서](TEST_VERIFICATION_2026-11-19.md)에 정리되어 있으며, 실행 스크립트는 `scripts/system_browser_test.cjs`, `scripts/system_browser_more_test.cjs`, `scripts/system_browser_critical_test.cjs`입니다.
 
 ## 실행 방법
 
