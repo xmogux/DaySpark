@@ -27,6 +27,13 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Ensure Korean fonts for readable screenshots (bounded)
+        run: |
+          if ! fc-list :lang=ko | grep -q .; then
+            timeout 45s sudo apt-get install -y -qq fonts-noto-cjk || echo "::warning::Korean font installation was unavailable"
+          fi
+          fc-cache -f
+
       - name: Install Playwright (use preinstalled Google Chrome)
         run: npm install --no-save playwright@1.56.1
 
