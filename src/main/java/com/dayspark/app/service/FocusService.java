@@ -4,11 +4,13 @@ import com.dayspark.app.domain.FocusStatus;
 import com.dayspark.app.model.Dare;
 import com.dayspark.app.model.FocusSession;
 import com.dayspark.app.repository.FocusSessionRepository;
+import com.dayspark.app.repository.DareRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +24,28 @@ public class FocusService {
     public record Switch(FocusSession stopped, FocusSession started) {}
 
     private final FocusSessionRepository repo;
+    private final DareRepository dareRepository;
     private final ProgressService progress;
     private final Clock clock;
 
-    public FocusService(FocusSessionRepository repo, ProgressService progress, Clock clock) {
+    @Autowired
+    public FocusService(
+        FocusSessionRepository repo, ProgressService progress, Clock clock, DareRepository dareRepository
+    ) {
         this.repo = repo;
         this.progress = progress;
         this.clock = clock;
+        this.dareRepository = dareRepository;
+    }
+
+    /** Plain constructor retained for repository-mocked unit tests. */
+    public FocusService(FocusSessionRepository repo, ProgressService progress, Clock clock) {
+        this(repo, progress, clock, null);
+    }
+
+    /** Pessimistic lock held until the surrounding transaction commits. */
+    private void lockSessionCreation() {
+        if (dareRepository != null) dareRepository.findFirstByOrderByIdAsc();
     }
 
     public List<FocusSession> active() {
@@ -45,6 +62,7 @@ public class FocusService {
     @Transactional
     public FocusSession start(Dare dare, int minutes) {
         checkCanStart(dare, minutes);
+        lockSessionCreation();
         if (current() != null) throw new IllegalArgumentException("이미 진행 중인 집중 세션이 있습니다.");
         return repo.save(new FocusSession(dare, minutes, Instant.now(clock)));
     }
@@ -57,6 +75,7 @@ public class FocusService {
     @Transactional
     public Switch switchTo(Dare dare, int minutes) {
         checkCanStart(dare, minutes);
+        lockSessionCreation();
         FocusSession running = current();
         if (running != null && running.getDare().getId().equals(dare.getId())) {
             throw new IllegalArgumentException("이미 이 도전으로 집중 중입니다.");

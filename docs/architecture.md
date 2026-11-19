@@ -334,7 +334,7 @@ stateDiagram-v2
 | `STOPPED` | 실제 집중한 시간(일시정지 제외, 1분 미만 버림) | 0 | 없음 |
 | `CANCELLED` | 0 | 0 | 없음 |
 
-- 순차 요청에서는 활성 집중 세션을 1개로 제한합니다(`FocusService.start`). 정확히 동시에 도착하는 다중 탭 요청의 원자적 직렬화는 현재 범위 밖입니다. 다른 도전으로 바꿀 때는 `FocusService.switchTo`가
+- `FocusService.start`와 `switchTo`는 첫 도전 레코드의 DB 비관적 쓰기 잠금을 공통으로 획득해 같은 서버에서 동시 시작을 직렬화합니다. 다만 대규모 동시성 부하 테스트는 수행하지 않았습니다. 다른 도전으로 바꿀 때는 `FocusService.switchTo`가
   한 트랜잭션에서 이전 세션을 기록·종료하고 새 세션을 시작합니다.
 - 통계의 **집중 시간**은 `FocusService.recordedBetween`(COMPLETED + STOPPED), **완료 횟수**는
   `completedBetween`(COMPLETED)에서 셉니다. 스키마 변경은 없습니다(`status` 값 하나 추가, `completed_day` 재사용).

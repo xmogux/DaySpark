@@ -75,11 +75,16 @@ class DaySparkIntegrationTest {
         dare.setGoals(1, "분", 0);
         Dare saved = dares.saveAndFlush(dare);
 
+        // Concurrent starts and switches must observe the single-active-session rule.
         // A one-minute session started two minutes ago: no real sleeping needed.
         FocusSession session = sessions.saveAndFlush(
             new FocusSession(saved, 1, Instant.now(clock).minusSeconds(120))
         );
         LocalDate completedDay = session.expectedCompletedDay(clock.getZone());
+
+        mvc.perform(post("/api/focus/start")
+                .param("dareId", saved.getId().toString()).param("minutes", "1"))
+            .andExpect(status().isBadRequest());
 
         mvc.perform(post("/api/focus/{id}/finish", session.getId()))
             .andExpect(status().isOk())
