@@ -1,104 +1,99 @@
-# DaySpark Changelog
+# DaySpark 변경 이력
 
-## v5 — bug-fix and presentation-template release
+이 문서는 DaySpark의 주요 기능 변경과 오류 수정 내역을 버전별로 기록한다. 이전 버전에서 사용한 실행 파일이나 데모 자료가 언급되더라도 현재 저장소에 남아 있다는 뜻은 아니다. 최신 실행 방법과 테스트 구성은 루트 `README.md`를 기준으로 확인한다.
 
-- Fixed focus session completion date calculation.
-- Removed write side effect from GET `/api/focus/current`.
-- Added enum-based input validation helpers for repeat type, category, schedule mode, and focus status.
-- Added `pausedFrom` so pausing a challenge no longer changes historical calendar/stat denominators.
-- Updated overall Streak to count scheduled days only.
-- Added global error handling and an error page.
-- Removed obsolete Thymeleaf Java 8 time dependency.
-- 이전 버전별 설명은 변경 이력으로 통합하고 현재 사용법은 루트 README에서 관리합니다.
+## v5 — 오류 수정 및 발표용 화면 정리
 
-## v5.1 — compilation hotfix / quiet Chrome launch
+- 집중 세션의 완료 날짜를 계산하는 오류를 수정했다.
+- `GET /api/focus/current` 조회 요청에서 데이터 변경을 일으키던 처리를 제거했다.
+- 반복 방식·도전 분류·일정 예외·집중 상태를 검사하는 열거형 기반 입력 검증 도우미를 추가했다.
+- 도전 쉬기 시작일을 나타내는 `pausedFrom`을 도입해 쉬기 이전의 날짜가 통계에서 무조건 제외되지 않도록 했다.
+- 전체 연속 달성일(Streak)을 계획이 있는 날짜 기준으로 계산하도록 변경했다.
+- 공통 예외 처리와 오류 안내 화면을 추가했다.
+- 더 이상 필요하지 않은 Thymeleaf의 Java 8 날짜·시간 관련 의존성을 제거했다.
+- 구버전별 사용 설명을 변경 이력으로 정리하고 현재 사용법은 README에서 관리하도록 했다.
 
-- Fixed Java 17 lambda capture compilation error at `CompletionService.java` in streak calculation. Historical schedule query is also performed once instead of each loop iteration.
-- Run the server in the background without the extra blue download/server console. Show genuine startup errors in the launcher, with full `.tools/server_startup.log` retained.
-- Reuse Maven from PATH or `.tools`, copy local installation to shared `%LOCALAPPDATA%/DaySpark/tools` once, and share it between extracted releases. Download only if absent.
-- Added `03_STOP_DAYSPARK.bat` for stopping the app server after closing Chrome.
+## v5.1 — Java 17 컴파일 오류 및 Windows 실행기 개선
 
-## v5.4 — monthly calendar visual redesign
+- `CompletionService.java`의 연속 달성일 계산 과정에서 발생한 Java 17 람다 변수 참조 컴파일 오류를 수정했다. 과거 일정 조회도 반복문 안에서 여러 번 실행하지 않도록 개선했다.
+- 당시 Windows 실행기에서 불필요한 추가 콘솔 창을 줄이고, 서버 시작 오류는 숨기지 않고 표시하도록 변경했다. 실행 로그를 `.tools/server_startup.log`에 보관하도록 했다.
+- Maven이 이미 설치된 경우 재사용하고, 필요한 경우 로컬 도구를 `%LOCALAPPDATA%/DaySpark/tools`에 보관해 압축 해제된 버전 간에 공유하도록 했다.
+- 당시 브라우저를 닫은 뒤 서버를 종료하기 위한 `03_STOP_DAYSPARK.bat`를 추가했다. 현재 실행 방식은 `RUN_DAYSPARK.bat` 기준으로 정리되어 있다.
 
-- New 7-column rounded calendar day cards with clear completed / partial / scheduled / unfinished / no-plan states, replacing neon strips on every date.
-- Added monthly summary cards for completed challenges, completion ratio through today, and actual completed focus minutes & rounds.
-- Date links keep the existing drill-down functionality; restyled the day details screen.
-- Added v5.4 page marker + updated launcher version check and CSS cache-busting across pages, to avoid silently opening a stale v5.3 process.
-- Added a static local Chrome preview with illustrative example data to inspect the calendar appearance.
+## v5.4 — 월간 달력 화면 개편
 
-## v5.5 — Study Review Plan
+- 날짜별 상태를 완료·일부 완료·예정·미완료·계획 없음으로 구분하는 둥근 카드형 7열 달력으로 개편했다.
+- 월간 완료 횟수, 오늘까지의 달성률, 실제 집중 시간과 완료 회차를 요약하는 지표 카드를 추가했다.
+- 날짜를 선택해 상세 기록을 여는 기능은 유지하면서 날짜 상세 화면의 디자인을 개선했다.
+- 이전 버전의 서버나 CSS가 브라우저에 남아 잘못된 화면을 여는 문제를 줄이기 위해 당시 버전 표식, 실행기 확인 및 CSS 캐시 갱신 방식을 조정했다.
+- 달력 외형을 점검하기 위한 정적 Chrome 미리보기와 예시 데이터를 일시적으로 추가했다. 이 자료는 이후 정리 과정에서 제거됐다.
 
-- STUDY 도전에 사용자 지정 복습 기준일/간격 설정 추가
-- 오늘 복습, 도전 상세 복습 타임라인, 월간 달력 복습 배지, 날짜 상세 복습 완료 처리 추가
-- 복습 완료 기록을 일반 도전 완료 통계와 분리 저장
+## v5.5 — 학습 복습 계획 기능
 
-## v5.6 — 제출 준비: 일관성 · 구조 · Git/CI
+- `STUDY` 분류의 도전에 사용자가 직접 복습 기준일과 간격을 설정하는 기능을 추가했다.
+- 오늘 화면의 복습 항목, 도전 상세의 복습 일정, 월간 달력의 복습 표시, 날짜 상세의 복습 완료 처리를 연결했다.
+- 복습 완료 기록을 일반 도전 완료 통계와 구분해 저장하도록 했다.
 
-이후 변경을 Git으로 관리하며, 현재 프로젝트 구성과 실행·테스트 방법은 루트 `README.md`에서 안내합니다.
+## v5.6 — 제출 준비 및 구조·검증 체계 정리
 
-**실행 환경**
+### 실행 환경
 
-- Java 17 기준으로 통일(pom · README · CI), Maven Wrapper 사용 안내
-- 실행기를 `RUN_DAYSPARK.bat` 하나로 정리(기본 브라우저, 8080 포트 확인). v5.4 표식을 기다리다 v5.5에서 브라우저를 열지 못하던 문제 제거
-- 서버를 127.0.0.1에만 바인딩. 브라우저 전용 데모(`demo.html`)와 미리보기 파일 제거
+- Java 17을 기준으로 `pom.xml`, README, CI 설정을 통일하고 Maven Wrapper 사용 방법을 정리했다.
+- Windows 실행 파일을 `RUN_DAYSPARK.bat`로 통합하고 기본 브라우저 실행과 8080 포트 사용 여부 확인을 추가했다. 오래된 화면 버전 표식을 기다리다가 브라우저가 열리지 않던 문제를 수정했다.
+- 서버의 기본 접속 주소를 `127.0.0.1`로 제한했다. 브라우저 전용 데모 화면과 임시 미리보기 파일은 제거했다.
 
-**버그 수정**
+### 오류 수정
 
-- 반복 요일 변경 후 주간 달성률 200% → "하루의 계획 = 예정 + 그날 완료" 규칙으로 해결
-- ADD → 완료 → RESET 시 완료가 계획 없는 날에 남던 문제 → 완료한 날짜는 SKIP·RESET 불가
-- 지난 복습이 오늘 화면에서 사라지던 문제 → 완료할 때까지 "N일 지남"으로 표시
-- 폼이 서버가 거부하는 MIND 카테고리를 보여주던 문제(WORK 누락)
-- 404·405가 500으로 바뀌고 오류가 로그에 남지 않던 문제
-- 타이머 finish 실패 시 브라우저가 초당 수백 번 재요청하던 문제
-- (리팩터링 중 발견) v5 이전 집중 기록이 있으면 도전 상세가 500 오류
+- 반복 요일을 변경한 뒤 주간 달성률이 200%까지 올라가던 문제를 해결했다. 하루의 계획을 반복 규칙상 예정된 도전과 해당 날짜에 완료된 도전의 합집합으로 계산한다.
+- 날짜별 추가(`ADD`) 이후 완료된 기록이 일정 초기화(`RESET`)로 계획에서 제외되지 않도록, 완료된 날짜의 쉬기(`SKIP`) 및 초기화를 제한했다.
+- 예정일이 지난 복습이 오늘 화면에서 사라지던 문제를 수정하고 완료 전까지 경과 일수를 표시하도록 했다.
+- 도전 생성 화면에서 지원하지 않는 `MIND` 분류가 표시되고 `WORK` 분류가 누락되던 문제를 수정했다.
+- 404·405 오류가 500으로 표시되거나 오류 로그가 남지 않던 문제를 수정했다.
+- 집중 완료 요청이 실패한 뒤 브라우저가 요청을 지나치게 자주 반복하던 문제를 수정했다.
+- 이전 버전의 집중 기록으로 도전 상세 화면을 열면 500 오류가 발생할 수 있던 문제를 수정했다.
 
-**기능 연결**
+### 기능 연결
 
-- 오늘 완료 취소(사진도 삭제)
-- 포모도로 → 수치 목표 진행량 → 목표 첫 도달 시 자동 완료(계획된 날만, 자정 경계 안전)
+- 오늘의 완료 기록을 취소할 수 있도록 하고, 첨부한 사진도 함께 정리하도록 했다.
+- 정상 완료된 집중 시간은 분 단위 수치 목표에 반영하고, 계획된 날짜에 목표에 처음 도달하면 자동 완료되도록 연결했다. 자정 전후의 날짜 계산도 반영했다.
 
-**규칙 고정 (`docs/domain-rules.md`)**
+### 규칙과 코드 구조
 
-- 복습 플랜 = 하나의 학습 단위, Streak = 계획일에 1개 이상 완료, 목표 미달 수동 완료 허용, 쉬기는 과거에 영향 없음
+- 복습 계획은 하나의 학습 단위 기준으로 관리하고, 연속 달성일은 계획된 날에 하나 이상 완료했는지로 계산하도록 규칙을 정리했다.
+- 수치 목표를 달성하지 않았더라도 사용자가 수동으로 완료할 수 있게 유지했다.
+- 도전 생성과 수정에 사용하는 입력값을 `DareRequest`로 묶고, 복습 간격은 `ReviewIntervals`, 연속 달성일은 `StreakCalculator`로 분리했다.
+- 화면별 통계 계산을 `StatsService`로 모으고, 컨트롤러 책임을 구분했으며 공통 메뉴를 템플릿 조각으로 통합했다.
+- JUnit 5, JaCoCo, GitHub Actions(JDK 17·25)를 통한 검증과 요구사항·설계·테스트 문서를 정리했다.
 
-**구조**
+## v5.7 — 실제 집중 시간 기록과 도전 전환
 
-- `DareRequest` DTO로 생성/수정 흐름 하나로(파라미터 16개 메서드 제거), `ReviewIntervals` 값 객체, `StreakCalculator`
-- 화면 계산을 `StatsService`로 모으고 컨트롤러를 영역별로 분리, 내비게이션 fragment, 코드 포맷 통일
+### 변경 배경
 
-**품질 관리·문서**
+이전에는 25분 집중을 시작한 뒤 12분 만에 중단하면 집중했던 12분이 기록되지 않았다. 다른 도전으로 전환할 때도 진행 중인 기록을 버리고 새 세션을 시작해야 했다.
 
-- JUnit 5 단위테스트, JaCoCo, GitHub Actions(JDK 17·25)
-- 요구사항·수용 기준, 설계(ERD·클래스·시퀀스·상태), 개발 과정, 한계 문서
+### 변경 내용
 
-## v5.7 — 집중 타이머: 실제 집중 시간 기록과 도전 전환
+- 집중 시간을 끝까지 채운 세션과 중간에 종료한 세션을 구분했다. 중간 종료를 나타내는 `STOPPED` 상태를 추가했다.
+- **종료 및 기록:** 일시정지 시간을 제외하고 실제 집중한 분을 오늘·주간·월간·달력·도전 상세 통계에 반영한다. 다만 완료 회차·목표 진행량·자동 완료에는 반영하지 않는다.
+- **정상 완료:** 계획 시간을 채우면 집중 시간과 완료 회차를 기록하고, 조건을 충족하면 목표 진행량 및 자동 완료에 반영한다.
+- **계획 시간 이후 종료:** 이미 계획 시간이 지난 세션은 중간 종료 요청이더라도 정상 완료로 처리한다.
+- **도전 전환:** 진행 중 다른 도전을 선택하면 확인을 거친 뒤 `POST /api/focus/switch`로 기존 세션을 기록·종료하고 새 세션을 시작한다. 두 처리는 하나의 DB 트랜잭션에서 수행한다.
+- 날짜 상세 화면에는 중간 종료 세션을 실제 집중 시간과 함께 표시한다. 완료 회차 수에는 끝까지 마친 세션만 포함한다.
+- 기록이 확정된 세션은 취소할 수 없다.
 
-**문제:** 25분 타이머를 12분 만에 멈추면 12분이 통째로 사라졌습니다(중단 = `CANCELLED`, 기록 없음).
-다른 도전으로 바꾸려면 중단(기록 삭제) → 다시 시작밖에 없었습니다.
+### 기존 동작 유지
 
-**바뀐 점** (규칙: `docs/domain-rules.md` 7.1)
+- 기존 DB 테이블 구조를 크게 바꾸지 않고 상태 값과 `completed_day`의 기록 날짜 의미를 확장했다.
+- 일시정지·새로고침 후 복원·서버 기준 시간 계산과 자동 완료 조건을 유지했다.
+- 기존 `CANCELLED` 세션은 계속 집중 통계에서 제외한다.
+- `FocusSessionUnitTests`로 시간 계산과 상태 전환 규칙을 확인했다.
 
-- "실제 집중한 시간"과 "끝까지 완료한 세션"을 분리. 새 상태 `STOPPED`
-  - **종료 및 기록**(이전 "중단"): 그때까지 집중한 시간(일시정지 제외)을 오늘·주·월·달력·도전 상세 집중 시간에 기록.
-    완료 횟수·진행량·자동 완료에는 넣지 않음
-  - 끝까지 마친 세션은 이전과 같음(시간 + 1회, 조건 충족 시 자동 완료)
-  - 계획 시간이 이미 지난 세션을 종료하면 정상 완료로 처리
-- 세션 중 다른 도전을 고르면 확인창 → 이전 세션을 기록·종료하고 새 세션 시작(`POST /api/focus/switch`, 한 트랜잭션)
-- 날짜 상세에 중간 종료 세션을 실제 분과 "중간 종료" 표시로 보여 줌. "N회 집중 완료"는 완료 세션만
-- 기록된 세션은 취소 불가
+## v5.7.0 — 데이터 일관성 보완 및 제출 자료 최신화
 
-**바꾸지 않은 것**
-
-- DB 스키마(상태 값 추가, `completed_day`를 기록 날짜로 재사용), 일시정지·새로고침 복원·서버 기준 시간 계산,
-  자동 완료 규칙, 기존 `CANCELLED` 기록(계속 집계 제외 → 기존 데이터의 통계는 그대로)
-
-**단위테스트:** `FocusSessionUnitTests`에서 시간·상태 전환 규칙을 검사
-
-## v5.7.0 — 데이터 일관성 및 제출 문서 정리
-
-- 도전 재개 시 지난 휴식일을 `SKIP`으로 고정해 과거 통계가 바뀌지 않도록 수정했습니다.
-- 사진 업로드의 기본 파일 헤더를 검사하고, DB 롤백 시 신규 사진 정리·DB 커밋 후 기존 사진 삭제를 적용했습니다.
-- 한국 시간 기준과 Maven/README 버전 표기를 통일했습니다.
-- 집중 시작·도전 전환 시 첫 도전 행의 DB 쓰기 잠금을 획득해 거의 동시인 시작 요청을 직렬화했습니다.
-- 단위 28개·통합 6개·브라우저 시스템 14개로 **48개 공식 테스트 구성 유지**, 기존 테스트에서 회귀 검증을 확장했습니다.
-- 요구사항·설계·테스트·한계 문서의 낡은 설명과 과거 CSS 진단 표식을 정리했습니다.
+- 도전을 쉬었다 재개할 때 지난 휴식일을 `SKIP` 일정 예외로 보존해 이전 계획과 통계가 뒤늦게 바뀌지 않도록 수정했다.
+- 사진 업로드 시 확장자뿐 아니라 파일의 기본 형식도 확인하고, DB 저장이 롤백되면 새 사진 파일을 정리하도록 했다.
+- 기존 완료 기록을 삭제할 때는 DB 트랜잭션 커밋 이후에 연결된 사진 파일을 삭제하도록 변경했다.
+- 서버 시간대를 `Asia/Seoul`로 통일하고 Maven 프로젝트와 README의 버전을 `5.7.0`으로 맞췄다.
+- 집중 시작과 도전 전환에 공통 DB 행 잠금을 적용해 동시에 도착하는 요청으로 여러 집중 세션이 시작되는 위험을 줄였다.
+- 공식 자동 테스트는 단위 28개, 통합 6개, 실제 Chrome 시스템 14개로 **총 48개**를 유지하면서 기존 시나리오의 검증 조건을 보강했다.
+- 요구사항·설계·테스트 문서를 현행 구현과 맞추고, 사용하지 않는 구버전 달력 CSS와 임시 진단용 표식을 정리했다.

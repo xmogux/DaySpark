@@ -82,7 +82,6 @@ JDK 17 이상이 필요합니다. Maven은 별도 설치하지 않아도 되지�
 | [업무 규칙](docs/domain-rules.md) | 완료·반복·Streak·복습·타이머 규칙 |
 | [시스템 설계](docs/architecture.md) | 계층·UML·ERD·시퀀스·상태 모델 |
 | [검증 결과](docs/TEST_VERIFICATION_2026-11-19.md) | 공식 48개 테스트의 범위와 실행 근거 |
-| [한계](docs/limitations.md) | 범위 밖 기능과 알려진 제약 |
 | [변경 이력](docs/CHANGELOG.md) | 버전별 기능 변경 |
 
 ## 소스 구성

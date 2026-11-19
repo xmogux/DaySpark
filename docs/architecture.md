@@ -244,7 +244,7 @@ erDiagram
     }
     REVIEW_RECORDS {
         bigint id PK
-        bigint dare_id "FK 제약 없음 (한계 참고)"
+        bigint dare_id "FK 제약 없이 ID 값 저장"
         int offset_days "UNIQUE(dare_id, offset_days)"
         timestamp completed_at
     }
