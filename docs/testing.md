@@ -1,60 +1,67 @@
-# DaySpark 단위테스트
+# DaySpark 공식 자동 테스트 (48개)
 
-이 프로젝트에 포함된 자동화 테스트는 **JUnit 5 단위테스트 28개(5개 클래스)**입니다.
-Spring 컨텍스트나 데이터베이스를 띄우지 않고 주요 도메인 객체의 규칙을 검사합니다.
+현재 `main` 브랜치의 공식 자동 테스트는 **단위 28 + 통합 6 + 브라우저 시스템 14 = 총 48개**입니다. 예전 별도 로컬 테스트 목록이나 과거 실행 횟수를 더하지 않습니다.
+
+| 유형 | 개수 | 위치 | 실행 |
+| --- | ---: | --- | --- |
+| 단위 테스트 | 28 | `src/test/java/com/dayspark/app/` | Maven JUnit |
+| 통합 테스트 | 6 | `DaySparkIntegrationTest.java`, `DaySparkMoreIntegrationTest.java` | Maven JUnit + MockMvc + 격리 H2 |
+| 브라우저 시스템 테스트 | 14 | `scripts/system_browser_*.cjs`, `scripts/system_browser_test.cjs` | GitHub Actions Chrome/Playwright |
+| **총계** | **48** | | |
+
+## 단위 테스트 28개
+
+| 테스트 클래스 | 개수 | 검사 내용 |
+| --- | ---: | --- |
+| `domain/StreakCalculatorTest` | 6 | 연속 달성일, 계획이 없는 날, 시작일, 탐색 범위 |
+| `domain/ReviewIntervalsTest` | 6 | 복습 입력 정렬·중복 제거·오류·범위·개수 |
+| `model/DareScheduleTest` | 5 | 반복 방식, 날짜 범위, 쉬기, 요일 표시, 복습 설정 |
+| `FocusSessionUnitTests` | 9 | 일시정지·재개·취소·중간 종료·완료와 시간/날짜 |
+| `FocusServiceUnitTests` | 2 | 도전 전환 오류의 상태 보존, 집중 완료 적립·중복 방지 |
+| **합계** | **28** | |
+
+단위 테스트는 고정 시간과 Mockito 등을 이용해 규칙을 검사하며 운영용 DB를 사용하지 않습니다.
+
+## 통합 테스트 6개
+
+| ID | 검사 |
+| --- | --- |
+| IT-01 | 도전 등록 HTTP → H2 저장 → 목록 조회 |
+| IT-02 | 집중 완료 → 진행량 → 자동 완료(중복 차단) |
+| IT-03 | 일정 예외 SKIP/ADD/RESET → 화면 표시 |
+| IT-04 | 완료 취소 → 기록/통계 반영 |
+| IT-05 | 복습 완료/취소 → DB 및 화면 |
+| IT-06 | 도전 삭제 → 관련 기록 정리 |
+
+통합 테스트는 Spring 컨텍스트, MockMvc와 별도 H2 메모리 DB를 사용합니다.
+
+## 실제 Chrome 시스템 테스트 14개
+
+SYS-01~SYS-14는 실제 Spring Boot 앱을 구동하고 Playwright로 브라우저 UI를 검사합니다. 상세 시나리오와 스크립트는 [통합·시스템 테스트 문서](minimal-system-test.md)에 있습니다.
 
 ## 실행 방법
 
-```bash
-./mvnw test       # 단위테스트 실행
-./mvnw verify     # 단위테스트 실행 + JaCoCo 리포트 생성
+**Windows:**
+
+```powershell
+.\mvnw.cmd clean verify
 ```
 
-Windows CMD/PowerShell: `mvnw.cmd test` 또는 `mvnw.cmd verify`
+**WSL/Linux/macOS:**
 
-| 확인할 결과 | 위치 |
-|---|---|
-| 개별 테스트 통과·실패 | `target/surefire-reports/` (`*.txt`, `TEST-*.xml`) |
-| 라인·분기 커버리지 | `target/site/jacoco/index.html` (`verify` 실행 후) |
-| CI 빌드 기록 | GitHub 저장소 → **Actions** 탭 (JDK 17 및 25) |
+```bash
+./mvnw clean verify
+```
 
-## 단위테스트 구성
+위 Maven 명령으로 실행되는 것은 **JUnit 34개(단위 28 + 통합 6)**입니다. 실제 Chrome 시스템 테스트 14개는 GitHub Actions의 [Browser system tests](https://github.com/xmogux/DaySpark/actions/workflows/system-browser.yml)에서 별도로 실행합니다.
 
-| 파일 경로 (`src/test/java/com/dayspark/app/` 기준) | 개수 | 확인 내용 |
-|---|---:|---|
-| `domain/StreakCalculatorTest.java` | 6 | 연속 달성일, 오늘 미완료, 실패한 계획일, 쉬는 날, 시작일 및 최대 탐색 기간 |
-| `domain/ReviewIntervalsTest.java` | 6 | 입력 정렬, 중복 제거, 전각 쉼표, 빈 값·숫자 오류, 간격 범위, 최대 12개 |
-| `model/DareScheduleTest.java` | 5 | 반복 요일, 계획 기간, 쉬기 시작일 경계, 요일 표시, 복습 설정 저장 |
-| `FocusSessionUnitTests.java` | 9 | 일시정지·재개·완료 조건, 취소 및 종료 상태, 실제 집중 시간, 날짜 경계 |
-| **총계** | **25** | **JUnit 5 `@Test` 메서드 수** |
+| 증빙 | 경로 |
+| --- | --- |
+| 단위/통합 테스트 결과 | `target/surefire-reports/TEST-*.xml` |
+| 코드 커버리지 | `target/site/jacoco/index.html` |
+| 브라우저 스크린샷·결과 JSON | GitHub Actions `browser-system-evidence` artifact |
+| 공식 PASS 로그 | [테스트 검증 보고서](TEST_VERIFICATION_2026-11-19.md) |
 
-## 테스트 방식과 범위
+JDK 17과 25에서 똑같은 JUnit 34개를 다시 실행하더라도 **34개 테스트로 집계**합니다. 같은 기능을 단위·통합·시스템 테스트에서 중복 검증하는 것은 서로 다른 검증 수준입니다.
 
-- `StreakCalculator`와 `ReviewIntervals`: 규칙·정규화·예외 입력을 확인합니다.
-- `Dare`: 반복 일정과 쉬기 시작일, 복습 설정의 상태를 확인합니다.
-- `FocusSession`: 고정된 `Instant`를 직접 입력해 경과 시간, 일시정지 구간, 상태 전환, 자정 경계를 확인합니다.
-- `FocusService`: Mockito로 저장소와 진행량 서비스를 대체해 핵심 서비스 동작을 검증합니다.
-- 모든 테스트는 외부 시간 대기, 실제 파일 DB, HTTP 요청 없이 실행되도록 작성했습니다.
-
-현재 자동화 검증은 위 도메인 객체와 `FocusService` 일부를 중심으로 합니다. Controller·Service·Repository를 연결한
-전체 사용 흐름과 실제 데이터 저장·조회는 이 테스트 목록만으로 확인되지 않습니다.
-필요한 기능은 실행 후 수동으로 확인해야 합니다.
-
-## 실행 결과 기록
-
-테스트 파일의 개수와 실제 실행 성공은 다릅니다. 결과가 필요할 때는 `./mvnw clean verify`를 실행하고
-Surefire 요약의 `Tests run`, `Failures`, `Errors`, `Skipped`를 확인하세요.
-JaCoCo는 측정 도구이며 현재 프로젝트에는 커버리지 최소 통과 기준이 지정되어 있지 않습니다.
-이 배포본에 포함된 테스트의 **최신 Maven 실행 결과 및 커버리지 수치는 확인되지 않았습니다.**
-
-## 수동 확인 권장 항목
-
-| 항목 | 방법 |
-|---|---|
-| 앱 시작 | Windows에서 `RUN_DAYSPARK.bat` 실행 후 `http://127.0.0.1:8080/` 접속 |
-| 도전 등록·수정·삭제 | 폼 정상 입력 및 오류 입력을 각각 시도하고 목록 반영 확인 |
-| 일정 및 완료 | 쉬기/추가/해제, 오늘 완료·취소, 기록 반영 확인 |
-| 사진 업로드 | 지원 형식·비지원 형식·용량 초과 후 결과와 파일 저장 확인 |
-| 타이머 | 시작·일시정지·재개·중간 종료·도전 전환·새로고침 복원 확인 |
-| 통계·달력·복습 | 날짜 변경과 복습 완료 상태가 화면에 일관되게 표시되는지 확인 |
-| 데이터 유지 | 서버 재시작 후 기록·사진이 남아 있는지 확인 |
+검증 결과는 로그가 남아 있는 정확한 커밋과 환경에서만 보장하며, 미실행 환경에서의 통과를 단정하지 않습니다.

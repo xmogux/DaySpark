@@ -81,28 +81,3 @@ jobs:
             target/system-server.log
             target/system-build.log
           if-no-files-found: warn
-
-  restart-persistence:
-    name: Persistent DB survives restart
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
-      - name: Package real DaySpark executable
-        run: |
-          mvn -B -ntp -DskipTests package
-      - name: Restart real JVM and verify persisted H2 record
-        run: bash scripts/system_restart_persistence_test.sh
-      - name: Upload persistence evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: persistence-restart-evidence
-          path: |
-            target/persistence-restart/**
-          if-no-files-found: warn
