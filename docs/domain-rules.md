@@ -1,7 +1,7 @@
 # DaySpark 도메인 규칙
 
 화면·통계·도메인 코드가 따라야 할 업무 규칙을 정리한 문서입니다.
-일부 도메인 규칙은 단위테스트로 확인하며, 서비스 전체 흐름은 구현 코드와 별도로 점검해야 합니다.
+도메인 규칙은 단위 테스트, 주요 연동은 통합 테스트, 사용자 흐름은 실제 Chrome 시스템 테스트로 검증합니다. 모든 예외 상황을 검증했다는 뜻은 아닙니다.
 
 ## 1. 하루의 계획 (Day plan)
 
@@ -11,7 +11,7 @@
 - 그래서 나중에 반복 요일을 바꾸거나, 도전을 쉬거나, ADD 예외를 지워도 **완료 수가 계획 수를 넘지 않습니다**
   (달성률은 항상 0~100%).
 - 오늘 화면, 달력, 날짜 상세, 통계, 도전별 달성률, Streak가 모두 이 규칙(`DareService.plannedFor`)을 씁니다.
-- 구현 위치: `DareService.plannedFor`, `StatsService` (서비스 동작은 별도 확인 필요)
+- 구현 위치: `DareService.plannedFor`, `StatsService` (대표 검증: IT-03·SYS-01·04·08).
 
 **알려진 한계:** 반복 규칙의 변경 이력은 저장하지 않습니다. 규칙을 바꾸면 *완료하지 않은* 과거 날짜의 계획 수는
 새 규칙으로 다시 계산됩니다. → `docs/limitations.md`
@@ -25,14 +25,15 @@
 | RESET | 예외 해제(원래 반복 규칙으로) | 오늘 이후, **완료한 날짜는 불가** |
 
 - 완료한 날짜의 일정을 바꾸려면 먼저 완료를 취소해야 합니다.
-- 구현 위치: `PlanningService.setOverride` (서비스 동작은 별도 확인 필요)
+- 구현 위치: `PlanningService.setOverride`, `PlanningService.preservePausedDays` (IT-03, SYS-04·08).
+- 재개할 때 **이전 휴식일은 `SKIP` 일정 예외로 저장**합니다. 재개 당일은 원래 반복 규칙을 따르며, 기존 완료 기록이 있는 과거 날짜는 변경하지 않습니다.
 
 ## 3. 완료와 완료 취소
 
 - 완료는 **오늘 계획된 도전**에 대해서만, 도전·날짜당 한 번 기록합니다(DB 고유 제약 `dare_id + challenge_date`).
-- 메모 최대 300자, 사진은 JPG/PNG/WEBP/GIF, 8MB 이하.
+- 메모 최대 300자, 사진은 JPG/PNG/WEBP/GIF, 8MB 이하. 확장자와 실제 이미지 기본 헤더를 함께 검사합니다.
 - **오늘의 완료는 취소할 수 있습니다.** 취소하면 완료 기록과 사진 파일이 함께 삭제되고, 그날의 계획은 그대로 남습니다.
-- 구현 위치: `CompletionService.undo`, `ImageStorage` (파일 삭제 결과는 수동 확인 필요)
+- 구현 위치: `CompletionService.undo`, `ImageStorage` (IT-04, SYS-10). DB 롤백 시 신규 파일을 정리하고 기존 파일은 DB 커밋 이후 삭제합니다.
 
 ## 4. 수치 목표
 
@@ -72,7 +73,7 @@
 - 예정일 전에도 완료 표시를 할 수 있습니다(미리 복습 허용).
 - **지난 복습은 완료할 때까지 오늘 화면에 남고** "N일 지남"으로 표시됩니다. 달력은 예정일 기준으로 보여줍니다.
 - 도전을 쉬는 동안의 복습은 오늘 화면·달력에 표시하지 않습니다.
-- 단위테스트: `ReviewIntervalsTest`, `DareScheduleTest` (간격·설정). 복습 조회·완료 흐름은 `ReviewService`에서 구현하며 별도 확인 필요.
+- 단위테스트: `ReviewIntervalsTest`, `DareScheduleTest` (간격·설정). 복습 조회·완료 흐름은 `ReviewService`에서 구현하며 IT-05·SYS-06에서 확인했습니다.
 
 ## 7. 포모도로 연결 (집중 → 진행량 → 완료)
 
@@ -115,4 +116,4 @@
 6. 브라우저는 finish가 실패하면 서버의 현재 세션 상태로 다시 맞추고, 5초 뒤에만 재시도합니다.
    (이전에는 실패 시 6초 동안 finish를 1,000번 넘게 호출했습니다.)
 
-- 단위테스트: `FocusSessionUnitTests` (9개), `FocusServiceUnitTests` (2개). 서비스의 진행량 반영 여부는 Mockito로 확인하며 실제 데이터베이스 동작은 별도 확인 필요.
+- 단위테스트: `FocusSessionUnitTests` (9개), `FocusServiceUnitTests` (2개). 서비스의 진행량 반영 여부는 Mockito로 확인하며 DB 연동은 IT-02, 브라우저 동작은 SYS-02·05·11·12·13에서 확인했습니다.

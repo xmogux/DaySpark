@@ -6,7 +6,7 @@
 - **대상 사용자:** 개인 PC에서 공부·운동·생활·업무 목표를 관리하는 단일 사용자
 - **범위:** 단일 사용자 로컬 웹앱. 회원가입·다중 사용자·외부 캘린더 연동·알림·AI 추천·자동 백업/복원 화면은 현재 범위에서 제외 → [limitations.md](limitations.md)
 - **규칙의 상세 정의:** [domain-rules.md](domain-rules.md)
-- 아래의 **구현 위치 / 단위테스트**는 각 수용 기준과 관련된 코드 또는 남아 있는 단위테스트를 가리킨다. 코드가 존재하는 것만으로 실행 검증이 완료된 것은 아니다. 단위테스트 범위와 실행 방법은 [testing.md](testing.md)를 참고한다.
+- 아래 **구현 위치 / 검증 근거**는 관련 코드 또는 테스트를 가리킵니다. 코드가 있다는 사실만으로 테스트 통과를 뜻하지 않습니다. 실제 실행 내용은 [testing.md](testing.md)와 [검증 기록](TEST_VERIFICATION_2026-11-19.md)을 참고하세요.
 
 ## 기능 요구사항 (R01~R16)
 
@@ -14,19 +14,19 @@
 
 이름·분류·기간을 설정한다. 삭제 시 관련 기록과 사진을 정리한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 이름(1~80자)과 시작일은 필수이며 종료일은 시작일 이후여야 한다. | `DareService.create`, `DareService.validate` |
 | 2 | 분류는 지원되는 카테고리만 선택할 수 있다. | `DareController.addFormOptions` |
 | 3 | 수정 화면은 저장된 값으로 채워진다. | `DareController.editForm` |
 | 4 | 입력 오류 시 오류를 표시하고 사용자가 입력한 값을 유지한다. | `DareController.save` |
-| 5 | 도전 삭제 시 완료·진행량·집중·일정 예외·복습 기록과 연결된 사진 파일을 함께 정리한다. | `DareService.delete` 수동/코드 확인 |
+| 5 | 도전 삭제 시 완료·진행량·집중·일정 예외·복습 기록과 연결된 사진 파일을 함께 정리한다. | `DareService.delete`, IT-06·SYS-07 |
 
 ### R02 반복 일정 설정
 
 매일·평일·선택 요일 및 시작일·종료일을 설정한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 매일·평일·주말·선택 요일 반복을 설정할 수 있다. | `DareScheduleTest.repeatTypesPlanTheExpectedWeekdays` |
 | 2 | 시작일 이전과 종료일 이후에는 계획되지 않는다. | `DareScheduleTest.nothingIsPlannedOutsideTheStartAndEndDates` |
@@ -36,7 +36,7 @@
 
 도전을 일시적으로 쉬게 하거나 다시 활성화한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 쉬기 시작일 이후의 계획은 비활성화되고 이전 날짜의 계획은 유지된다. | `DareScheduleTest.pauseAffectsOnlyTheDayItStartsAndLater` |
 | 2 | 쉬고 있는 도전을 다시 활성 상태로 돌릴 수 있다. | `DareService.toggle`, `Dare.resume` |
@@ -45,7 +45,7 @@
 
 도전 기간 안의 오늘·미래 날짜에 추가·쉬기·예외 해제를 적용한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | `SKIP`한 날짜는 계획에서 빠지고 완료할 수 없다. | `PlanningService.setOverride` |
 | 2 | 날짜별로 `ADD`, `SKIP`, `RESET`을 적용할 수 있다. | `PlanningService.setOverride` |
@@ -56,7 +56,7 @@
 
 하루 1~10000의 수치 목표와 단위를 설정한다. 주간 목표는 0~7회이며 0은 미설정이다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 하루 목표, 단위, 주간 목표를 저장할 수 있다. | `DareService.configureGoals` |
 | 2 | 하루 목표는 1~10000 범위로 검증한다. | `DareService.validate`, `DareRequest` |
@@ -66,7 +66,7 @@
 
 예정 도전, 완료, 진행량, 집중 시간, 오늘·지난 복습을 보여준다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 오늘 계획된 도전과 완료/진행 상태를 조회할 수 있다. | `HomeController.home`, `StatsService`/`TodayBoard` |
 | 2 | 오늘 복습과 기한이 지난 미완료 복습을 함께 보여준다. | `ReviewService.dueOn` |
@@ -76,7 +76,7 @@
 
 오늘 예정된 도전을 중복 없이 완료하고 오늘 완료를 취소한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 오늘 예정된 도전만 완료할 수 있다. | `CompletionService.complete`, `PlanningService.isScheduled` |
 | 2 | 같은 도전·날짜의 완료는 중복 생성하지 않는다. | DB 고유 제약 `completions(dare_id, challenge_date)`, `CompletionService` |
@@ -86,17 +86,17 @@
 
 완료 시 사진과 메모를 선택 입력한다. 사진 확장자와 업로드 크기를 제한한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 완료 시 최대 300자의 메모를 저장할 수 있다. | `CompletionService.complete` |
-| 2 | JPG·PNG·WEBP·GIF 사진을 선택 첨부할 수 있고 업로드 크기를 제한한다. | `ImageStorage`, `CompletionService.complete` |
+| 2 | JPG·PNG·WEBP·GIF 사진의 확장자·실제 헤더·업로드 크기를 확인한다. | `ImageStorage`, `CompletionService.complete` |
 | 3 | 허용되지 않는 이미지 형식이나 저장 실패를 성공으로 처리하지 않는다. | `ImageStorage.save`, 오류 처리 코드 |
 
 ### R09 진행량 기록과 자동 완료
 
 오늘 예정된 도전에 양수 진행량을 누적하고 목표에 처음 도달할 때 자동 완료한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 오늘 예정된 도전의 진행량만 기록할 수 있다. | `ProgressService.add` |
 | 2 | 양수 진행량을 누적하며 입력 범위를 검증한다. | `ProgressService.add` |
@@ -107,7 +107,7 @@
 
 활성 도전에 1~120분을 설정하고 시작·일시정지·재개·완료한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 활성 도전을 선택해 1~120분 집중 세션을 시작할 수 있다. | `FocusService.start`, `FocusApi` |
 | 2 | 실행 중 세션을 일시정지하고 재개할 수 있다. | `FocusApi`, `FocusSessionUnitTests.pauseResumeAndCompletionRequireFullElapsedTime` |
@@ -118,7 +118,7 @@
 
 중간 종료 시간을 기록한다. 도전 전환 시 기존 세션을 종료한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 계획 시간 전에 종료하면 실제 집중한 시간만 `STOPPED` 세션으로 기록한다. | `FocusSessionUnitTests.stopKeepsTheTimeFocusedAndExcludesPauses` |
 | 2 | 중간 종료 세션은 완료 회차와 목표 진행량에 더하지 않는다. | `FocusService.stop`, `FocusServiceUnitTests.onlyCompletedSessionEarnsGoalProgress` |
@@ -129,7 +129,7 @@
 
 휴식·반복 회차를 관리하고 서버의 진행 중인 세션을 다시 불러온다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 브라우저에서 집중/휴식 시간과 반복 회차를 설정하고 다음 회차를 진행할 수 있다. | `focus.js`, 집중 화면 수동 확인 |
 | 2 | 새로고침 후 서버에 남아 있는 진행 중 세션의 상태와 남은 시간을 다시 불러온다. | `FocusApi`, `focus.js` |
@@ -139,7 +139,7 @@
 
 공부 도전의 기준일·간격을 정하고 복습을 조회·완료·취소한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | STUDY 도전에 기준일과 복습 간격을 직접 설정할 수 있다. | `DareService`, `ReviewIntervalsTest` |
 | 2 | 입력한 간격은 정렬하고 중복을 제거한다. | `ReviewIntervalsTest` |
@@ -151,7 +151,7 @@
 
 월별 정보를 조회하고 날짜별 계획·실행 기록을 확인한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 월간 계획·완료·집중·복습 정보와 요약을 조회할 수 있다. | `StatsService.calendarMonth` |
 | 2 | 선택한 날짜의 계획·완료·복습·집중 기록을 조회할 수 있다. | `CalendarController.day` |
@@ -161,7 +161,7 @@
 
 주간·월간·분류별·도전별 지표, 연속 기록과 완료 이력을 본다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 주간·월간 달성률과 분류별·도전별 결과를 조회한다. | `StatsService`, `StatsController` |
 | 2 | 달성률은 0~100% 범위를 유지한다. | `StatsService.overview` |
@@ -172,7 +172,7 @@
 
 로컬 서버로 실행하고 기록을 보존하며 입력 오류·실패를 안내한다.
 
-| # | 수용 기준 | 구현 위치 / 단위테스트 |
+| # | 수용 기준 | 구현 위치 / 검증 근거 |
 |---|---|---|
 | 1 | 애플리케이션은 개인 PC의 로컬 서버에서 실행한다. | `application.properties`, `RUN_DAYSPARK.bat` |
 | 2 | 업무 기록은 H2 파일 DB, 사진은 로컬 파일에 저장하여 재시작 후 사용할 수 있게 구성한다. | `application.properties`, `ImageStorage` |

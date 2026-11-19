@@ -251,7 +251,7 @@ erDiagram
 ```
 
 - 복습 **예정일은 저장하지 않습니다.** `review_base_date + offset_days`로 계산하고, 완료한 회차만 `review_records`에 남깁니다.
-- 하루의 계획도 저장하지 않고 반복 규칙 + 예외 + 완료 기록으로 계산합니다.
+- 하루의 계획도 저장하지 않고 반복 규칙 + 예외 + 완료 기록으로 계산합니다. 재개한 도전의 지난 휴식일은 `SKIP` 예외로 유지합니다.
 
 ## 4. 주요 흐름
 
@@ -275,8 +275,9 @@ sequenceDiagram
     else 이미 완료
         CS-->>HC: 기존 기록 반환 (중복 없음)
     else 정상
-        CS->>IS: save(image) — 확장자 검사, UUID 파일명
+        CS->>IS: save(image) — 확장자·파일 헤더 검사, UUID 파일명
         CS->>DB: save(Completion)
+        Note over CS,IS: DB 롤백 시 신규 파일 삭제
         HC-->>U: redirect / + "완료했어요"
     end
 ```
@@ -333,7 +334,7 @@ stateDiagram-v2
 | `STOPPED` | 실제 집중한 시간(일시정지 제외, 1분 미만 버림) | 0 | 없음 |
 | `CANCELLED` | 0 | 0 | 없음 |
 
-- 동시에 진행 중인 세션은 1개뿐입니다(`FocusService.start`). 다른 도전으로 바꿀 때는 `FocusService.switchTo`가
+- 순차 요청에서는 활성 집중 세션을 1개로 제한합니다(`FocusService.start`). 정확히 동시에 도착하는 다중 탭 요청의 원자적 직렬화는 현재 범위 밖입니다. 다른 도전으로 바꿀 때는 `FocusService.switchTo`가
   한 트랜잭션에서 이전 세션을 기록·종료하고 새 세션을 시작합니다.
 - 통계의 **집중 시간**은 `FocusService.recordedBetween`(COMPLETED + STOPPED), **완료 횟수**는
   `completedBetween`(COMPLETED)에서 셉니다. 스키마 변경은 없습니다(`status` 값 하나 추가, `completed_day` 재사용).

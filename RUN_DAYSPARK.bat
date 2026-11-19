@@ -5,7 +5,7 @@ rem DaySpark launcher for Windows 10/11
 rem
 rem  1. Checks that Java is installed and that port 8080 is free.
 rem  2. Starts the Spring Boot server in THIS window (Maven Wrapper).
-rem  3. Opens the default browser once http://localhost:8080/ responds.
+rem  3. Opens the default browser once http://127.0.0.1:8080/ responds.
 rem
 rem Stop the server: press Ctrl+C in this window, or close the window.
 rem Messages are in English on purpose: cmd.exe code pages garble UTF-8 Korean.
@@ -33,7 +33,7 @@ if not defined MVN (
 )
 if not defined MVN (
     echo [DaySpark] mvnw.cmd is missing and Maven is not installed.
-    echo            See README.md, section "Maven Wrapper".
+    echo            See README.md for Java and Maven Wrapper requirements.
     pause
     exit /b 1
 )
