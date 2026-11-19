@@ -9,7 +9,7 @@
 - Updated overall Streak to count scheduled days only.
 - Added global error handling and an error page.
 - Removed obsolete Thymeleaf Java 8 time dependency.
-- Cleaned top-level README and moved older version-specific notes to `docs/archive/` (removed in v5.6).
+- 이전 버전별 설명은 변경 이력으로 통합하고 현재 사용법은 루트 README에서 관리합니다.
 
 ## v5.1 — compilation hotfix / quiet Chrome launch
 
@@ -34,7 +34,7 @@
 
 ## v5.6 — 제출 준비: 일관성 · 구조 · Git/CI
 
-이후 변경을 Git으로 관리하며, 현재 프로젝트 구성은 `README.md`와 `docs/process.md`에서 안내합니다.
+이후 변경을 Git으로 관리하며, 현재 프로젝트 구성과 실행·테스트 방법은 루트 `README.md`에서 안내합니다.
 
 **실행 환경**
 

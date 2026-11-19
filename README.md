@@ -1,8 +1,8 @@
-# DaySpark v5.6.0
+# DaySpark
 
 반복 목표를 오늘의 할 일로 정리하고 **완료·진행량·집중 시간·복습·달력·통계**를 하나의 화면 흐름으로 관리하는 단일 사용자용 로컬 웹 애플리케이션입니다. 소프트웨어공학·객체지향 설계 프로젝트입니다.
 
-> **공식 기준:** GitHub `main` 브랜치의 소스와 테스트. 테스트 구성은 **총 48개(단위 28개 + 통합 6개 + 실제 Chrome 브라우저 시스템 14개)**이며, GitHub Actions에서 실행합니다. 이 외의 과거 로컬 테스트 목록을 현행 테스트 수에 합산하지 않습니다.
+> **공식 기준:** GitHub `main` 브랜치의 소스와 테스트. 테스트 구성은 **총 48개(단위 28개 + 통합 6개 + 실제 Chrome 브라우저 시스템 14개)**이며, GitHub Actions에서 실행합니다..
 
 ## 주요 기능
 
@@ -69,7 +69,6 @@ JDK 17 이상이 필요합니다. Maven은 별도 설치하지 않아도 되지�
 
 - [48개 테스트 상세·실행 증빙](docs/TEST_VERIFICATION_2026-11-19.md)
 - [실행 방법 및 종류별 설명](docs/testing.md)
-- [통합·브라우저 테스트 세부 시나리오](docs/minimal-system-test.md)
 - [Java CI](https://github.com/xmogux/DaySpark/actions/workflows/ci.yml)
 - [브라우저 시스템 테스트 CI](https://github.com/xmogux/DaySpark/actions/workflows/system-browser.yml)
 
@@ -81,7 +80,6 @@ JDK 17 이상이 필요합니다. Maven은 별도 설치하지 않아도 되지�
 | [업무 규칙](docs/domain-rules.md) | 완료·반복·Streak·복습·타이머 규칙 |
 | [시스템 설계](docs/architecture.md) | 계층·UML·ERD·시퀀스·상태 모델 |
 | [검증 결과](docs/TEST_VERIFICATION_2026-11-19.md) | 공식 48개 테스트의 범위와 실행 근거 |
-| [개발 과정](docs/process.md) | Git/PR/CI 및 협업 절차 |
 | [한계](docs/limitations.md) | 범위 밖 기능과 알려진 제약 |
 | [변경 이력](docs/CHANGELOG.md) | 버전별 기능 변경 |
 

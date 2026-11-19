@@ -37,7 +37,7 @@
 
 ## 실제 Chrome 시스템 테스트 14개
 
-SYS-01~SYS-14는 실제 Spring Boot 앱을 구동하고 Playwright로 브라우저 UI를 검사합니다. 상세 시나리오와 스크립트는 [통합·시스템 테스트 문서](minimal-system-test.md)에 있습니다.
+SYS-01~SYS-14는 실제 Spring Boot 앱을 구동하고 Playwright로 브라우저 UI를 검사합니다. 개별 시나리오 및 통과 증빙은 [공식 테스트 검증 보고서](TEST_VERIFICATION_2026-11-19.md)에 정리되어 있으며, 실행 스크립트는 `scripts/system_browser_test.cjs`, `scripts/system_browser_more_test.cjs`, `scripts/system_browser_critical_test.cjs`입니다.
 
 ## 실행 방법
 
