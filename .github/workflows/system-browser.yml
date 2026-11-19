@@ -39,13 +39,19 @@ jobs:
           SERVER_ADDRESS: 127.0.0.1
         run: |
           mkdir -p target
-          chmod +x ./mvnw
-          ./mvnw -B -ntp spring-boot:run > target/system-server.log 2>&1 &
+          mvn -B -ntp -DskipTests package > target/system-build.log 2>&1 || { cat target/system-build.log; exit 1; }
+          JAR="$(find target -maxdepth 1 -type f -name '*.jar' ! -name '*.original' | head -1)"
+          test -n "$JAR"
+          java -jar "$JAR" > target/system-server.log 2>&1 &
           echo $! > target/system-server.pid
           for n in $(seq 1 90); do
-            if curl -fsS http://127.0.0.1:8080/ > /dev/null; then
+            if curl -fsS http://127.0.0.1:8080/ > /dev/null 2>&1; then
               echo "DaySpark server ready"
               exit 0
+            fi
+            if ! kill -0 "$(cat target/system-server.pid)" 2>/dev/null; then
+              cat target/system-server.log
+              exit 1
             fi
             sleep 2
           done
@@ -66,6 +72,7 @@ jobs:
           path: |
             system-test-evidence/**
             target/system-server.log
+            target/system-build.log
           if-no-files-found: warn
 
   restart-persistence:
@@ -81,8 +88,7 @@ jobs:
           cache: maven
       - name: Package real DaySpark executable
         run: |
-          chmod +x mvnw
-          ./mvnw -B -ntp -DskipTests package
+          mvn -B -ntp -DskipTests package
       - name: Restart real JVM and verify persisted H2 record
         run: bash scripts/system_restart_persistence_test.sh
       - name: Upload persistence evidence
