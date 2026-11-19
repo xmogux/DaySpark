@@ -110,7 +110,7 @@ function summary(page){return page.request.get(BASE+'/api/focus/summary').then(r
     const onePixel=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9YKJt0QAAAAASUVORK5CYII=','base64');
     await finishToday(page,title,'사진 업로드 검증',{name:'proof.png',mimeType:'image/png',buffer:onePixel});
     await page.goto(BASE+'/history');
-    const record=page.locator('.history-card').filter({has:page.getByRole('heading',{name:title})});
+    const record=page.locator('.timeline-item').filter({has:page.getByRole('heading',{name:title})});
     await record.waitFor();
     const img=record.locator('img[src^="/uploads/"]');
     const src=await img.getAttribute('src');
