@@ -18,7 +18,7 @@ JUnit 34개는 JDK 17과 25 각각에서 재실행했으며 동일한 테스트�
 
 ## 실제 GitHub Actions 증빙
 
-**수정 코드 검증:** 커밋 `75247fc`에서 [Java CI JDK 17·25](https://github.com/xmogux/DaySpark/actions/runs/44536227536)와 [Chrome 시스템 테스트 14개](https://github.com/xmogux/DaySpark/actions/runs/44536226641)가 모두 성공했습니다. 아래 발췌 로그는 이전 커밋을 대상으로 한 독립적인 원문 증빙입니다.
+**최종 기능 코드 검증:** 커밋 `e1bc4a77`에서 [Java CI(JDK 17·25)](https://github.com/xmogux/DaySpark/actions/runs/44539010666) 및 [Chrome 14개 시스템 테스트](https://github.com/xmogux/DaySpark/actions/runs/44539010670)가 모두 성공했습니다. 아래 발췌 로그는 이전 커밋의 독립적인 원문 증빙이며, 기능 변경 이후의 최신 결과는 위 링크를 기준으로 확인합니다.
 
 | 실행 | 검증 | 결과 | 확인된 로그 |
 | --- | --- | --- | --- |
@@ -46,7 +46,7 @@ JUnit 34개는 JDK 17과 25 각각에서 재실행했으며 동일한 테스트�
 | ID | 검사 항목 | 결과 |
 | --- | --- | --- |
 | IT-01 | 도전 생성 요청 → DB 저장 → 목록 조회 | PASS |
-| IT-02 | 집중 완료 → 진행량 → 자동 완료(중복 방지) | PASS |
+| IT-02 | 중복 집중 시작 거부·집중 완료 → 진행량 → 자동 완료(중복 방지) | PASS |
 | IT-03 | 일정 예외 SKIP/ADD/RESET 및 재개 후 휴식일 보존 | PASS |
 | IT-04 | 사진 포함 완료 취소 → DB·이력·통계 및 사진 파일 정리 | PASS |
 | IT-05 | 복습 완료·취소 → DB·상세 화면 반영 | PASS |
