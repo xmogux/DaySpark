@@ -29,13 +29,8 @@ jobs:
 
       - name: Build, run unit tests, measure coverage
         run: |
-          if [ -f mvnw ]; then
-            chmod +x mvnw
-            ./mvnw -B -ntp verify
-          else
-            echo "::warning::mvnw is not committed yet (see README 'Maven Wrapper'); using the runner's Maven."
-            mvn -B -ntp verify
-          fi
+          # GitHub-hosted runners already include Maven; avoid external Wrapper ZIP downloads.
+          mvn -B -ntp verify
 
       - name: Coverage summary
         if: matrix.java == '17'
